@@ -218,13 +218,13 @@ export default function DemoController() {
           {/* Quick links to track and detail pages */}
           <div className="grid grid-cols-2 gap-2 text-center text-xs mt-1">
             <Link 
-              href={`/order/${currentOrder.orderId}`}
+              href={`/order?id=${currentOrder.orderId}`}
               className="py-1.5 bg-slate-100 text-slate-700 font-semibold rounded-lg hover:bg-slate-200 transition-colors"
             >
               电子凭证页
             </Link>
             <Link 
-              href={`/journey/${currentOrder.orderId}`}
+              href={`/journey?id=${currentOrder.orderId}`}
               className="py-1.5 bg-primary/10 text-primary font-semibold rounded-lg hover:bg-primary/20 transition-colors"
             >
               实时追踪页

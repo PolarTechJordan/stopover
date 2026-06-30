@@ -58,7 +58,7 @@ export default function CheckoutPage() {
 
       // Redirect to Order Confirmation page after 1.5s
       setTimeout(() => {
-        router.push(`/order/${order.orderId}`);
+        router.push(`/order?id=${order.orderId}`);
       }, 1500);
     }, 2000);
   };

@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useEffect, useState, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useOrderStore } from '@/lib/store/orderStore';
 import { tourRoutes, airports, addons } from '@/lib/mockData';
 import { BaggageStatus } from '@/lib/types';
@@ -12,19 +12,12 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 
-interface PageProps {
-  params: Promise<{ id: string }>;
-}
-
-export default function JourneyPage({ params }: PageProps) {
+function JourneyContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const orderId = searchParams.get('id');
   const { currentOrder, transitionOrder } = useOrderStore();
-  const [orderId, setOrderId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'baggage' | 'itinerary' | 'addons'>('baggage');
-
-  useEffect(() => {
-    params.then((res) => setOrderId(res.id));
-  }, [params]);
 
   if (!currentOrder || (orderId && currentOrder.orderId !== orderId)) {
     return (
@@ -87,7 +80,7 @@ export default function JourneyPage({ params }: PageProps) {
         </div>
 
         <Link 
-          href={`/order/${currentOrder.orderId}`}
+          href={`/order?id=${currentOrder.orderId}`}
           className="text-xs bg-white border border-slate-200 hover:border-slate-300 font-bold px-4 py-2.5 rounded-xl text-slate-700 transition-colors shadow-sm"
         >
           查看电子凭证 (QR)
@@ -214,7 +207,7 @@ export default function JourneyPage({ params }: PageProps) {
                 </h3>
                 
                 <p className="text-xs text-slate-500 leading-relaxed">
-                  行李目前由中转仓储系统实时跟踪保护。离港航班起飞前 90 分钟，系统将指派服务人员自动将行李送抵指定登机口。
+                  行李目前由中转仓储 system 实时跟踪保护。离港航班起飞前 90 分钟，系统将指派服务人员自动将行李送抵指定登机口。
                 </p>
 
                 <div className="flex items-center gap-4 text-xs font-semibold text-slate-500 pt-1">
@@ -450,7 +443,7 @@ export default function JourneyPage({ params }: PageProps) {
               </div>
               
               <div className="flex-grow space-y-2 text-xs">
-                <span className="text-[9px] bg-primary/10 text-primary border border-primary/20 px-2 py-0.5 rounded font-bold">
+                <span className="text-[9px] bg-primary/10 text-primary border border-primary/20 px-2.5 py-0.5 rounded font-bold">
                   中转地 eSIM 激活卡
                 </span>
                 <h3 className="font-bold text-slate-800">4G/5G 高速流量包 (5GB)已开通</h3>
@@ -511,5 +504,15 @@ export default function JourneyPage({ params }: PageProps) {
         </div>
       )}
     </div>
+  );
+}
+
+export default function JourneyPage() {
+  return (
+    <Suspense fallback={<div className="flex-grow flex items-center justify-center py-20 text-xs text-slate-500">正在加载中转行程面板...</div>}>
+      <Suspense fallback={<div className="text-xs">Loading...</div>}>
+        <JourneyContent />
+      </Suspense>
+    </Suspense>
   );
 }

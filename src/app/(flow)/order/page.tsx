@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useEffect, useState, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useOrderStore } from '@/lib/store/orderStore';
 import { QRCodeSVG } from 'qrcode.react';
 import { 
@@ -10,18 +10,11 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 
-interface PageProps {
-  params: Promise<{ id: string }>;
-}
-
-export default function OrderDetailPage({ params }: PageProps) {
+function OrderDetailContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const orderId = searchParams.get('id');
   const { currentOrder } = useOrderStore();
-  const [orderId, setOrderId] = useState<string | null>(null);
-
-  useEffect(() => {
-    params.then((res) => setOrderId(res.id));
-  }, [params]);
 
   if (!currentOrder || (orderId && currentOrder.orderId !== orderId)) {
     return (
@@ -197,7 +190,7 @@ export default function OrderDetailPage({ params }: PageProps) {
             </p>
             
             <Link 
-              href={`/journey/${currentOrder.orderId}`}
+              href={`/journey?id=${currentOrder.orderId}`}
               className="w-full py-3.5 bg-primary hover:bg-primary/95 text-white font-bold rounded-2xl text-center text-xs flex items-center justify-center gap-2 group transition-all"
             >
               <span>进入行程看板与行李追踪</span>
@@ -207,5 +200,13 @@ export default function OrderDetailPage({ params }: PageProps) {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function OrderDetailPage() {
+  return (
+    <Suspense fallback={<div className="flex-grow flex items-center justify-center py-20 text-xs text-slate-500">正在加载订单凭证信息...</div>}>
+      <OrderDetailContent />
+    </Suspense>
   );
 }
