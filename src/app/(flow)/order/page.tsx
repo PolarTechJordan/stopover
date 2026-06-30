@@ -5,6 +5,8 @@ import { useSearchParams } from 'next/navigation';
 import { useOrderStore } from '@/lib/store/orderStore';
 import { QRCodeSVG } from 'qrcode.react';
 import { addons } from '@/lib/mockData';
+import { getAddonLabel, getPackageLabel, t } from '@/lib/appPreferences';
+import { useAppPreferences } from '@/components/features/AppPreferenceProvider';
 import { 
   CheckCircle, Plane, Briefcase,
   ArrowRight, User, Sparkles, ChefHat,
@@ -13,19 +15,20 @@ import Link from 'next/link';
 
 function OrderDetailContent() {
   const searchParams = useSearchParams();
+  const { language } = useAppPreferences();
   const orderId = searchParams.get('id');
   const { currentOrder } = useOrderStore();
 
   if (!currentOrder || (orderId && currentOrder.orderId !== orderId)) {
     return (
       <div className="flex-1 py-20 text-center">
-        <h2 className="text-xl font-bold text-slate-800">订单不存在或已过期</h2>
-        <p className="text-xs text-slate-500 mt-2">请重新预定中转套餐。</p>
+        <h2 className="text-xl font-bold text-slate-800">{t(language, 'order.notFound')}</h2>
+        <p className="text-xs text-slate-500 mt-2">{t(language, 'order.notFoundBody')}</p>
         <Link 
           href="/search" 
           className="inline-block mt-4 px-6 py-2 bg-primary text-white text-xs font-semibold rounded-xl"
         >
-          返回预订
+          {t(language, 'nav.booking')}
         </Link>
       </div>
     );
@@ -44,7 +47,7 @@ function OrderDetailContent() {
     });
   };
   const addonNames = currentOrder.addons
-    .map((sku) => addons.find((item) => item.sku === sku)?.name ?? sku)
+    .map((sku) => addons.find((item) => item.sku === sku) ? getAddonLabel(sku, language) : sku)
     .join('、');
   const hasAiMeal = currentOrder.addons.includes('ai-group-meal');
 
@@ -52,8 +55,8 @@ function OrderDetailContent() {
     <div className="flex-1 w-full max-w-7xl mx-auto px-4 py-5 pb-24 sm:px-6 sm:py-8 md:pb-8 flex flex-col gap-2">
       {/* Step Indicator */}
       <div className="mb-5 hidden items-center gap-3 justify-center md:mb-6 md:flex md:justify-start">
-        <span className="text-xs bg-primary text-white px-2 py-0.5 rounded font-bold uppercase tracking-wider">Step 4 of 5</span>
-        <span className="text-slate-400 text-xs">生成出行电子凭证</span>
+        <span className="text-xs bg-primary text-white px-2 py-0.5 rounded font-bold uppercase tracking-wider">{t(language, 'flow.order.step')}</span>
+        <span className="text-slate-400 text-xs">{t(language, 'flow.order.title')}</span>
       </div>
 
       <div className="text-center md:text-left mb-6 md:mb-8">
@@ -62,9 +65,9 @@ function OrderDetailContent() {
             <CheckCircle size={25} />
           </div>
           <div>
-            <h1 className="text-[1.65rem] font-black leading-tight text-slate-900 md:text-2xl">您的中转套餐已订购成功！</h1>
+            <h1 className="text-[1.65rem] font-black leading-tight text-slate-900 md:text-2xl">{t(language, 'order.successTitle')}</h1>
             <p className="text-xs text-slate-500 mt-1">
-              电子服务凭证已下发。在柜台出示二维码即可核销履约。
+              {t(language, 'order.successBody')}
             </p>
           </div>
         </div>
@@ -81,7 +84,7 @@ function OrderDetailContent() {
               Stopover Voucher
             </span>
             <span className="text-xs text-primary font-black mt-1">
-              {currentOrder.package.name} (电子凭证)
+              {getPackageLabel(currentOrder.package.sku, language)} ({t(language, 'order.voucher')})
             </span>
 
             {/* QR Code Container */}
@@ -101,23 +104,23 @@ function OrderDetailContent() {
             </div>
 
             <p className="text-[10px] text-slate-400 mt-3 leading-relaxed max-w-[180px] mx-auto">
-              抵达中转柜台后，向工作人员出示此二维码，办理行李全托管及服务启用。
+              {t(language, 'order.qrHint')}
             </p>
           </div>
 
           <div className="bg-slate-950 text-white rounded-3xl p-5 shadow-md flex flex-col gap-3 md:hidden">
             <h4 className="font-bold text-xs text-accent uppercase tracking-wider flex items-center gap-1.5">
               <Briefcase size={14} />
-              <span>实时行李全托管追踪已开启</span>
+              <span>{t(language, 'order.trackingTitle')}</span>
             </h4>
             <p className="text-[11px] text-slate-400 leading-relaxed">
-              下一步进入追踪看板，现场演示 RFID 行李托管、酒店/微游履约节点和误机保障。
+              {t(language, 'order.trackingBody')}
             </p>
             <Link
               href={`/journey?id=${currentOrder.orderId}`}
               className="w-full py-3.5 bg-primary hover:bg-primary/95 text-white font-bold rounded-2xl text-center text-xs flex items-center justify-center gap-2 group transition-all"
             >
-              <span>进入行程看板与行李追踪</span>
+              <span>{t(language, 'order.openTracking')}</span>
               <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
             </Link>
           </div>
@@ -127,20 +130,20 @@ function OrderDetailContent() {
         <div className="md:col-span-3 flex flex-col gap-4 md:gap-6">
           <div className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm flex flex-col gap-4 sm:p-6">
             <h3 className="font-bold text-xs text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-3">
-              预订明细
+              {t(language, 'order.bookingDetails')}
             </h3>
 
             {/* Traveler info */}
             <div className="grid grid-cols-2 gap-3 text-xs sm:gap-4">
               <div className="flex flex-col gap-0.5">
-                <span className="text-[10px] text-slate-400">旅客姓名拼音</span>
+                <span className="text-[10px] text-slate-400">{t(language, 'order.passengerName')}</span>
                 <span className="font-bold text-slate-800 flex items-center gap-1">
                   <User size={12} className="text-slate-400" />
                   <span>JORDAN ZHOU</span>
                 </span>
               </div>
               <div className="flex flex-col gap-0.5">
-                <span className="text-[10px] text-slate-400">护照号码</span>
+                <span className="text-[10px] text-slate-400">{t(language, 'order.passport')}</span>
                 <span className="font-bold text-slate-800">E88998899</span>
               </div>
             </div>
@@ -150,7 +153,7 @@ function OrderDetailContent() {
             
             <div className="flex items-center justify-between gap-2 text-xs bg-sand/30 p-3 rounded-xl border border-slate-100">
               <div className="flex flex-col">
-                <span className="text-[9px] text-slate-400">到达航班</span>
+                <span className="text-[9px] text-slate-400">{t(language, 'order.arrival')}</span>
                 <span className="font-bold text-slate-800 flex items-center gap-1">
                   <Plane size={11} className="rotate-90 text-primary" />
                   <span>{currentOrder.arrivalFlight.flightNo}</span>
@@ -162,12 +165,16 @@ function OrderDetailContent() {
                 <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded font-black">
                   {currentOrder.layoverAirport}
                 </span>
-                <span className="text-[9px] text-slate-400 mt-1 font-bold">{currentOrder.totalTransitHours}h 中转</span>
-                <span className="text-[8px] text-slate-400 mt-0.5 whitespace-nowrap">(预留 {currentOrder.layoverHours}h)</span>
+                <span className="text-[9px] text-slate-400 mt-1 font-bold">
+                  {language === 'zh-CN' ? `${currentOrder.totalTransitHours}h 中转` : `${currentOrder.totalTransitHours}h layover`}
+                </span>
+                <span className="text-[8px] text-slate-400 mt-0.5 whitespace-nowrap">
+                  {language === 'zh-CN' ? `(预留 ${currentOrder.layoverHours}h)` : `(reserved ${currentOrder.layoverHours}h)`}
+                </span>
               </div>
 
               <div className="flex flex-col text-right">
-                <span className="text-[9px] text-slate-400">离境航班</span>
+                <span className="text-[9px] text-slate-400">{t(language, 'order.departure')}</span>
                 <span className="font-bold text-slate-800 flex items-center justify-end gap-1">
                   <Plane size={11} className="text-accent" />
                   <span>{currentOrder.departureFlight.flightNo}</span>
@@ -180,14 +187,14 @@ function OrderDetailContent() {
             <div className="h-[1px] bg-slate-100" />
 
             <div className="text-xs">
-              <span className="text-[10px] text-slate-400 block mb-1">已购中转产品</span>
+              <span className="text-[10px] text-slate-400 block mb-1">{t(language, 'order.product')}</span>
               <div className="flex justify-between font-bold text-slate-800">
-                <span>{currentOrder.package.name}</span>
+                <span>{getPackageLabel(currentOrder.package.sku, language)}</span>
                 <span>¥{currentOrder.package.price}</span>
               </div>
               {currentOrder.addons.length > 0 && (
                 <div className="text-slate-500 mt-1 text-[11px] leading-relaxed">
-                  + 加购增值项: {addonNames}
+                  + {t(language, 'order.addons')}: {addonNames}
                 </div>
               )}
             </div>
@@ -199,16 +206,18 @@ function OrderDetailContent() {
                 <div className="rounded-2xl border border-cyan-100 bg-[linear-gradient(135deg,#effcff,#fff7ed)] p-4">
                   <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.16em] text-primary">
                     <Sparkles size={14} />
-                    <span>DragonPass MealPulse</span>
+                    <span>{language === 'zh-CN' ? 'DragonPass MealPulse' : 'Meal add-on'}</span>
                   </div>
                   <div className="mt-2 flex items-start gap-3">
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-orange-200">
                       <ChefHat size={18} />
                     </div>
                     <div>
-                      <h4 className="text-sm font-black text-slate-900">AI 停留团餐核销已生成</h4>
+                      <h4 className="text-sm font-black text-slate-900">{language === 'zh-CN' ? 'AI 停留团餐核销已生成' : 'Meal redemption has been generated'}</h4>
                       <p className="mt-1 text-[11px] font-semibold leading-5 text-slate-500">
-                        餐位、会合点、返场提醒与订单二维码绑定。到达后礼宾会按当前航班时段和能量偏好确认最终餐厅。
+                        {language === 'zh-CN'
+                          ? '餐位、会合点、返场提醒与订单二维码绑定。到达后礼宾会按当前航班时段和能量偏好确认最终餐厅。'
+                          : 'Meal slot, meeting point and return reminders are bound to the same order QR.'}
                       </p>
                     </div>
                   </div>
@@ -218,7 +227,7 @@ function OrderDetailContent() {
             )}
 
             <div className="flex justify-between items-baseline">
-              <span className="text-xs text-slate-400 font-bold">付款实额:</span>
+              <span className="text-xs text-slate-400 font-bold">{t(language, 'order.paid')}:</span>
               <span className="text-xl font-extrabold text-primary">¥{currentOrder.totalAmount}</span>
             </div>
           </div>
@@ -227,17 +236,17 @@ function OrderDetailContent() {
           <div className="hidden bg-slate-900 text-white rounded-3xl p-6 shadow-md md:flex md:flex-col md:gap-3">
             <h4 className="font-bold text-xs text-accent uppercase tracking-wider flex items-center gap-1.5">
               <Briefcase size={14} />
-              <span>实时行李全托管追踪已开启</span>
+              <span>{t(language, 'order.trackingTitle')}</span>
             </h4>
             <p className="text-[11px] text-slate-400 leading-relaxed">
-              系统已激活该行程的行李 RFID 跟踪状态机。您可以点击下方按钮进入“实时行程追踪页”查看行李在后台转运的详细信息，或查看城市微游导游接送时刻表。
+              {t(language, 'order.trackingBody')}
             </p>
             
             <Link 
               href={`/journey?id=${currentOrder.orderId}`}
               className="w-full py-3.5 bg-primary hover:bg-primary/95 text-white font-bold rounded-2xl text-center text-xs flex items-center justify-center gap-2 group transition-all"
             >
-              <span>进入行程看板与行李追踪</span>
+              <span>{t(language, 'order.openTracking')}</span>
               <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
             </Link>
           </div>

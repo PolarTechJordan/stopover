@@ -1,4 +1,5 @@
 import { addons, airports, packages, tourRoutes } from './mockData';
+import { getAddonLabel, getPackageLabel, type LanguageCode } from './appPreferences';
 import type { AddonSku, AirportCode, PackageSku } from './types';
 
 export type ConciergeIntent =
@@ -336,7 +337,38 @@ export function buildConciergePlan(
   };
 }
 
-export function buildDeterministicReply(plan: ConciergePlan) {
+export function buildDeterministicReply(plan: ConciergePlan, language: LanguageCode = 'zh-CN') {
+  if (language === 'en-US') {
+    if (plan.missingSlots.includes('可订购时长不足 6 小时')) {
+      return 'This layover is below 6 hours, so I would not sell a city or hotel package. The safe option is airport-side rest, dining and fast-track support.';
+    }
+
+    if (plan.intent === 'baggage') {
+      return `Baggage is photographed, RFID-tagged and linked to the order. This plan includes ${plan.modules.find((item) => item.key === 'baggage')?.value}. Return is triggered 90 minutes before departure, with coverage up to ¥5,000 per piece.`;
+    }
+
+    if (plan.intent === 'addons') {
+      const labels = plan.recommendedAddons.map((sku) => getAddonLabel(sku, language)).join(', ');
+      return `Yes. The best add-ons are ${labels || 'eSIM and meal matching'}, and I will attach them to the same voucher.`;
+    }
+
+    if (plan.intent === 'checkout') {
+      return `Ready to book. I will create a ${getPackageLabel(plan.packageSku, language)} order with QR voucher, RFID baggage card and fulfillment tracking.`;
+    }
+
+    if (plan.intent === 'fulfillment') {
+      return 'Fulfillment moves through counter handoff, service start, return, baggage handback and boarding. If the return threshold is breached, fast return and concierge intervention start automatically.';
+    }
+
+    const packageSummary =
+      plan.packageSku === 'light'
+        ? 'This is a short layover, so the safest value is lounge rest, baggage storage and fast track.'
+        : plan.packageSku === 'micro'
+          ? 'This layover can support a fixed city micro-tour after baggage handoff, with enough return buffer.'
+          : 'This long or overnight layover needs hotel rest, transfers, baggage custody and return assurance in one order.';
+    return `${packageSummary} I recommend ${getPackageLabel(plan.packageSku, language)}, from ¥${plan.packagePrice}.`;
+  }
+
   if (plan.missingSlots.includes('可订购时长不足 6 小时')) {
     return '这段中转低于 6 小时，不建议购买城市或酒店服务。我只能给你机场内休息、餐饮券和快速安检方案。';
   }

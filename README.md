@@ -11,7 +11,7 @@
 * **状态引擎**：Zustand v5 + `persist` 中间件（在浏览器 `localStorage` 中自动持久化订单和行李状态，刷新页面不丢失）
 * **时间处理**：Day.js (处理高精度的中转时间段差值计算、行李相对流转时间轴偏移)
 * **动画系统**：Framer Motion (提供流畅的收银台流转、卡片切换微动画)
-* **凭证生成**：qrcode.react (生成出港海关申报与行李标签关联的 RFID 电子核销二维码)
+* **凭证生成**：qrcode.react (生成服务核销与行李标签关联的 RFID 电子凭证二维码)
 * **图标库**：Lucide React
 * **AI 礼宾**：Next.js Route Handler + DashScope OpenAI-compatible `/chat/completions`，默认模型 `qwen3.7-max`，无 Key 时自动降级为确定性 demo 回复
 
@@ -29,7 +29,7 @@
 │   │   └── (flow)/               # 核心业务漏斗流程
 │   │       ├── search/           # Step 1: 航班搜索（4/10/23/35h真实航班预设与时间轴滑块）
 │   │       ├── packages/         # Step 2: 套餐匹配（智能匹配轻享、微游、过夜包，置灰受限包）
-│   │       ├── checkout/         # Step 3: 安全收银台（旅客护照拼音入境申报与一键支付）
+│   │       ├── checkout/         # Step 3: 安全收银台（履约核验信息与一键支付）
 │   │       ├── order/            # Step 4: 电子凭证（生成电子凭证二维码，通过 ?id= 关联订单）
 │       └── journey/          # Step 5: 追踪看板（双 Tab 追踪，通过 ?id= 关联追踪）
 │   │

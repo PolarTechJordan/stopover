@@ -5,6 +5,8 @@ import { useSearchParams } from 'next/navigation';
 import { useOrderStore } from '@/lib/store/orderStore';
 import { tourRoutes, airports } from '@/lib/mockData';
 import { BaggageStatus } from '@/lib/types';
+import { formatHours, formatPieces, getPackageLabel, localizeAirport, t } from '@/lib/appPreferences';
+import { useAppPreferences } from '@/components/features/AppPreferenceProvider';
 import { 
   Briefcase, Clock, Compass, MapPin,
   User, Phone, Car, ShieldAlert, Wifi,
@@ -12,8 +14,46 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 
+function localizeBaggageLocation(location: string, airportName: string, language: 'zh-CN' | 'en-US') {
+  if (language === 'zh-CN') return location;
+
+  if (location.includes('待收件')) return `${airportName} - Awaiting handoff`;
+  if (location === '中转柜台系统联通') return 'Transit counter system linked';
+  if (location === '中转服务台') return 'Transit service counter';
+  if (location === 'T1 环亚贵宾厅寄存库') return 'T1 Plaza Premium Lounge storage';
+  if (location === '机场贵宾厅寄存中心') return 'Airport lounge custody center';
+  if (location === '登机口行李交接处') return 'Gate baggage handover point';
+  if (location === '登机口 / 飞机货舱') return 'Gate / aircraft hold';
+  if (location.includes('房')) return location.replace('房', ' room');
+  return location;
+}
+
+function localizeBaggageDescription(description: string, language: 'zh-CN' | 'en-US') {
+  if (language === 'zh-CN') return description;
+
+  const descriptions: Record<string, string> = {
+    '系统已成功关联行李，等待旅客抵达柜台后交付办理。':
+      'Baggage is linked to the order and waiting for traveler handoff at the counter.',
+    '行李已在中转柜台交付收取，RFID 标签已激活绑定并开始托管。':
+      'Baggage has been handed over at the transit counter; RFID custody is active.',
+    '行李已安全运抵贵宾厅专属行李托管库。':
+      'Baggage has arrived safely at the dedicated lounge custody area.',
+    '旅客出发前往市区微游，行李在机场贵宾厅妥善保管中。':
+      'Traveler has started the city micro-tour; baggage remains secured at the airport lounge.',
+    '专车运送，行李已送达合作酒店前台并配送至房间。':
+      'Dedicated transfer has delivered baggage to the partner hotel front desk and room.',
+    '行李已被专人从贵宾厅/酒店库取出，正运回安检口/登机口。':
+      'Staff have collected baggage from lounge or hotel storage and are returning it to security or gate handover.',
+    '旅客在安检出口签收领回行李，行李转交装机，状态完成。':
+      'Traveler has signed for baggage near security; baggage is handed to flight loading and the state is complete.',
+  };
+
+  return descriptions[description] ?? description;
+}
+
 function JourneyContent() {
   const searchParams = useSearchParams();
+  const { language } = useAppPreferences();
   const orderId = searchParams.get('id');
   const { currentOrder, transitionOrder } = useOrderStore();
   const [activeTab, setActiveTab] = useState<'baggage' | 'itinerary' | 'addons'>('baggage');
@@ -21,26 +61,35 @@ function JourneyContent() {
   if (!currentOrder || (orderId && currentOrder.orderId !== orderId)) {
     return (
       <div className="flex-1 py-20 text-center">
-        <h2 className="text-xl font-bold text-slate-800">未找到对应行程信息</h2>
-        <p className="text-xs text-slate-500 mt-2">请确认您的订单号。</p>
+        <h2 className="text-xl font-bold text-slate-800">{t(language, 'journey.notFound')}</h2>
+        <p className="text-xs text-slate-500 mt-2">{t(language, 'journey.notFoundBody')}</p>
         <Link href="/search" className="inline-block mt-4 px-6 py-2 bg-primary text-white text-xs font-semibold rounded-xl">
-          重新预订
+          {t(language, 'nav.booking')}
         </Link>
       </div>
     );
   }
 
-  const currentAirport = airports.find(a => a.code === currentOrder.layoverAirport)!;
+  const currentAirport = localizeAirport(airports.find(a => a.code === currentOrder.layoverAirport)!, language);
   const tourDetail = currentOrder.cityTour ? tourRoutes.find(r => r.id === currentOrder.cityTour?.routeId) : null;
 
   // Baggage timeline steps
-  const baggageSteps: { status: BaggageStatus; label: string; desc: string }[] = [
-    { status: 'received', label: '柜台收件', desc: '中转柜台已扫码贴标' },
-    { status: 'in_transit', label: '内场转运', desc: '行李正送往专属仓库' },
-    { status: 'at_lounge', label: '送抵保管', desc: '行李已送达贵宾室/酒店' },
-    { status: 'returning', label: '出库运回', desc: '专人正将行李运送至归还点' },
-    { status: 'delivered', label: '领回签收', desc: '旅客已认领，关联卡注销' }
-  ];
+  const baggageSteps: { status: BaggageStatus; label: string; desc: string }[] =
+    language === 'zh-CN'
+      ? [
+          { status: 'received', label: '柜台收件', desc: '中转柜台已扫码贴标' },
+          { status: 'in_transit', label: '内场转运', desc: '行李正送往专属仓库' },
+          { status: 'at_lounge', label: '送抵保管', desc: '行李已送达贵宾室/酒店' },
+          { status: 'returning', label: '出库运回', desc: '专人正将行李运送至归还点' },
+          { status: 'delivered', label: '领回签收', desc: '旅客已认领，关联卡注销' },
+        ]
+      : [
+          { status: 'received', label: 'Counter handoff', desc: 'Counter scan and RFID tag attached' },
+          { status: 'in_transit', label: 'Airside transfer', desc: 'Baggage is moving to secure storage' },
+          { status: 'at_lounge', label: 'In custody', desc: 'Baggage is stored at lounge or hotel' },
+          { status: 'returning', label: 'Returning', desc: 'Staff are moving baggage to handover point' },
+          { status: 'delivered', label: 'Signed return', desc: 'Traveler has reclaimed baggage' },
+        ];
 
   // Helper to determine step visual style in journey timeline
   const getBaggageStepIndex = (status: BaggageStatus) => {
@@ -59,12 +108,16 @@ function JourneyContent() {
       <div className="mb-5 flex flex-col items-start justify-between gap-4 border-b border-slate-200/60 pb-5 md:mb-8 md:flex-row md:items-center md:pb-6">
         <div className="min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-xs font-bold text-slate-400">实时行程追踪面板</span>
+            <span className="text-xs font-bold text-slate-400">{t(language, 'flow.journey.title')}</span>
             <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-ping" />
-            <span className="text-[10px] text-green-600 font-bold bg-green-50 px-2 py-0.5 rounded-full">实时定位已连接</span>
+            <span className="text-[10px] text-green-600 font-bold bg-green-50 px-2 py-0.5 rounded-full">{t(language, 'journey.live')}</span>
           </div>
           <h1 className="flex items-center gap-2 break-words text-xl font-black leading-tight text-slate-900 md:text-2xl">
-            <span>正在追踪 {currentOrder.orderId} 的中转行程</span>
+            <span>
+              {language === 'zh-CN'
+                ? `正在追踪 ${currentOrder.orderId} 的中转行程`
+                : `${t(language, 'journey.titlePrefix')} ${currentOrder.orderId}`}
+            </span>
           </h1>
         </div>
 
@@ -72,7 +125,7 @@ function JourneyContent() {
           href={`/order?id=${currentOrder.orderId}`}
           className="w-full text-center text-xs bg-white border border-slate-200 hover:border-slate-300 font-bold px-4 py-3 rounded-xl text-slate-700 transition-colors shadow-sm md:w-auto md:py-2.5"
         >
-          查看电子凭证 (QR)
+          {t(language, 'journey.viewVoucher')}
         </Link>
       </div>
 
@@ -83,9 +136,11 @@ function JourneyContent() {
             <ShieldAlert size={26} />
           </div>
           <div className="flex-1">
-            <h3 className="font-extrabold text-rose-800 text-base mb-1 md:text-lg">触发中转“无忧保障计划” (SOP 启动)</h3>
+            <h3 className="font-extrabold text-rose-800 text-base mb-1 md:text-lg">{t(language, 'journey.missedTitle')}</h3>
             <p className="text-xs text-rose-700 leading-relaxed mb-4">
-              因城市微游路况延误，致使您未能于登机前 60 分钟到达安检口，系统已自动判定误机并触发安全托管应急机制。
+              {language === 'zh-CN'
+                ? '因城市微游路况延误，致使您未能于登机前 60 分钟到达安检口，系统已自动判定误机并触发安全托管应急机制。'
+                : 'The city micro-tour return is late and the traveler did not reach security 60 minutes before departure. The missed-connection SOP is now active.'}
             </p>
             
             <div className="bg-white/80 rounded-2xl p-4 border border-rose-100 text-xs text-slate-700 leading-relaxed mb-4 space-y-2">
@@ -107,7 +162,7 @@ function JourneyContent() {
               onClick={() => transitionOrder('REFUND', '旅客触发误机保险理赔，套餐全额退款成功！')}
               className="px-6 py-3 bg-rose-600 text-white font-bold rounded-xl text-xs hover:bg-rose-700 shadow-md shadow-rose-600/20 transition-all"
             >
-              点击一键申请退还套餐费
+              {t(language, 'journey.refund')}
             </button>
           </div>
         </div>
@@ -119,7 +174,9 @@ function JourneyContent() {
             <CheckCircle size={26} />
           </div>
           <div>
-            <h3 className="font-extrabold text-emerald-800 text-base mb-1 md:text-lg">误机险赔付成功，理赔已入账</h3>
+            <h3 className="font-extrabold text-emerald-800 text-base mb-1 md:text-lg">
+              {language === 'zh-CN' ? '误机险赔付成功，理赔已入账' : 'Missed-connection refund completed'}
+            </h3>
             <p className="text-xs text-emerald-700 leading-relaxed mb-1">
               套餐实付金额 <strong>¥{currentOrder.totalAmount}</strong> 已全额退款原路退回。
             </p>
@@ -141,7 +198,7 @@ function JourneyContent() {
           }`}
         >
           <Briefcase size={16} />
-          <span>行李全托管</span>
+          <span>{t(language, 'journey.baggageTab')}</span>
         </button>
         <button
           onClick={() => setActiveTab('itinerary')}
@@ -152,7 +209,7 @@ function JourneyContent() {
           }`}
         >
           <Compass size={16} />
-          <span>中转行程履约明细</span>
+          <span>{t(language, 'journey.itineraryTab')}</span>
         </button>
         <button
           onClick={() => setActiveTab('addons')}
@@ -163,7 +220,7 @@ function JourneyContent() {
           }`}
         >
           <Wifi size={16} />
-          <span>我的核销权益卡</span>
+          <span>{t(language, 'journey.addonsTab')}</span>
         </button>
       </div>
 
@@ -185,43 +242,45 @@ function JourneyContent() {
               
               <div className="flex-1 w-full space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">当前行李托管状态</span>
+                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{t(language, 'journey.baggageStatus')}</span>
                   <span className="shrink-0 text-[10px] bg-primary/10 text-primary border border-primary/20 px-2.5 py-0.5 rounded-full font-bold">
-                    RFID 安全保障中
+                    {t(language, 'journey.rfid')}
                   </span>
                 </div>
                 
                 <h3 className="font-extrabold text-lg text-slate-800 md:text-xl">
-                  {currentOrder.baggage.currentLocation}
+                  {localizeBaggageLocation(currentOrder.baggage.currentLocation, currentAirport.nameZh, language)}
                 </h3>
                 
                 <p className="text-xs text-slate-500 leading-relaxed">
-                  行李目前由中转仓储 system 实时跟踪保护。离港航班起飞前 90 分钟，系统将指派服务人员自动将行李送抵指定登机口。
+                  {t(language, 'journey.baggageBody')}
                 </p>
 
                 <div className="flex items-center gap-4 text-xs font-semibold text-slate-500 pt-1">
                   <div>
-                    <span className="text-[10px] text-slate-400 font-bold block">托运件数:</span>
-                    <span className="text-slate-800">{currentOrder.baggage.pieceCount ?? 1} 件行李</span>
+                    <span className="text-[10px] text-slate-400 font-bold block">{t(language, 'journey.pieces')}:</span>
+                    <span className="text-slate-800">{formatPieces(currentOrder.baggage.pieceCount ?? 1, language)}</span>
                   </div>
                   <div className="w-[1px] h-6 bg-slate-100" />
                   <div>
-                    <span className="text-[10px] text-slate-400 font-bold block">保障额度:</span>
-                    <span className="text-emerald-600">最高赔付 ¥5,000</span>
+                    <span className="text-[10px] text-slate-400 font-bold block">{t(language, 'journey.coverage')}:</span>
+                    <span className="text-emerald-600">{language === 'zh-CN' ? '最高赔付 ¥5,000' : 'Up to ¥5,000'}</span>
                   </div>
                 </div>
               </div>
             </div>
           ) : (
             <div className="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm text-center text-xs text-slate-500">
-              您的套餐 (轻享包) 未包含行李全托管转运服务。随身行李寄存已通过机场自动寄存柜完成，请妥善保管提取钥匙。
+              {language === 'zh-CN'
+                ? '您的套餐未包含行李全托管转运服务。随身行李寄存已通过机场自动寄存柜完成，请妥善保管提取钥匙。'
+                : 'This package does not include full baggage transfer. Carry-on storage is handled by the airport locker flow.'}
             </div>
           )}
 
           {/* Timeline */}
           {currentOrder.baggage && (
             <div className="bg-white rounded-3xl p-4 border border-slate-100 shadow-sm sm:p-6">
-              <h4 className="font-bold text-xs text-slate-400 uppercase tracking-wider mb-5 md:mb-6">RFID 全程转运生命周期</h4>
+              <h4 className="font-bold text-xs text-slate-400 uppercase tracking-wider mb-5 md:mb-6">{t(language, 'journey.timeline')}</h4>
               
               <div className="relative pl-6 space-y-8 before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-[2px] before:bg-slate-100">
                 {baggageSteps.map((step, idx) => {
@@ -262,10 +321,10 @@ function JourneyContent() {
 
                       <div className="flex-1">
                         <p className={`text-xs font-semibold ${isUpcoming ? 'text-slate-400' : 'text-slate-800'}`}>
-                          {matchedHistory ? matchedHistory.location : step.label}
+                          {matchedHistory ? localizeBaggageLocation(matchedHistory.location, currentAirport.nameZh, language) : step.label}
                         </p>
                         <p className="text-[11px] text-slate-400 mt-0.5 leading-relaxed">
-                          {matchedHistory ? matchedHistory.description : step.desc}
+                          {matchedHistory ? localizeBaggageDescription(matchedHistory.description, language) : step.desc}
                         </p>
                       </div>
                     </div>
@@ -286,9 +345,11 @@ function JourneyContent() {
               <Clock size={20} />
             </div>
             <div>
-              <h3 className="font-bold text-sm text-slate-800">已启用 {currentOrder.package.name} 产品服务线</h3>
+              <h3 className="font-bold text-sm text-slate-800">
+                {t(language, 'journey.serviceLine')}: {getPackageLabel(currentOrder.package.sku, language)}
+              </h3>
               <p className="text-[11px] text-slate-500 mt-0.5">
-                中转港：{currentAirport.nameZh} | 总中转：{currentOrder.totalTransitHours}小时 (服务预留：{currentOrder.layoverHours}小时) | 限额内无门槛兑换履约
+                {t(language, 'journey.airport')}: {currentAirport.nameZh} | {language === 'zh-CN' ? '总中转' : 'Total'}: {formatHours(currentOrder.totalTransitHours, language)} ({language === 'zh-CN' ? '服务预留' : 'reserved'}: {formatHours(currentOrder.layoverHours, language)})
               </p>
             </div>
           </div>

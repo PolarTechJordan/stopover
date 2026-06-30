@@ -47,7 +47,7 @@ export const packages: Package[] = [
   {
     sku: 'light',
     name: '轻享包',
-    tagline: '4–8 小时中转首选，轻量小憩，去疲补能',
+    tagline: '6–8 小时中转首选，轻量小憩，去疲补能',
     price: 280,
     currency: 'CNY',
     includes: [
@@ -56,13 +56,13 @@ export const packages: Package[] = [
       '快速安检绿色通道 (Fast Track)',
       '贵宾厅内洗漱淋浴与高速 Wi-Fi'
     ],
-    recommendedLayover: { minHours: 4, maxHours: 8 },
+    recommendedLayover: { minHours: 6, maxHours: 8 },
     addons: ['esim', 'ai-group-meal', 'meal-voucher', 'shower'],
   },
   {
     sku: 'micro',
     name: '微游包',
-    tagline: '8–18 小时白天中转首选，轻装出机场，探秘城市',
+    tagline: '10–18 小时白天中转首选，轻装出机场，探秘城市',
     price: 780,
     currency: 'CNY',
     includes: [
@@ -73,7 +73,7 @@ export const packages: Package[] = [
       '特制当地风味特色午餐/晚餐',
       '中转延误/误机全面安心保障与改签协助'
     ],
-    recommendedLayover: { minHours: 8, maxHours: 18 },
+    recommendedLayover: { minHours: 10, maxHours: 18 },
     addons: ['esim', 'transfer', 'ai-group-meal', 'meal-voucher'],
   },
   {
@@ -253,7 +253,7 @@ export interface MockFlightCase {
 export const mockFlightCases: MockFlightCase[] = [
   {
     id: 'case-4h',
-    label: '4小时超短停留 (新加坡港)',
+    label: '4小时不可订购边界样例 (新加坡港)',
     airportCode: 'SIN',
     arrivalFlightNo: 'SQ801',
     arrivalAirline: '新加坡航空',
@@ -262,8 +262,8 @@ export const mockFlightCases: MockFlightCase[] = [
     departureAirline: '新加坡航空',
     departureTimeStr: '2026-07-01 13:00',
     calculatedLayover: 4,
-    periodDesc: '上午到达 / 中午离境',
-    description: '4小时超短中转（自动推荐轻享包，安检内贵宾厅享尊享休息）'
+    periodDesc: '低于MVP最低时长',
+    description: '4小时超短中转低于 PRD 6 小时起订线，用于演示不可订购边界和机场内替代建议。'
   },
   {
     id: 'case-10h',

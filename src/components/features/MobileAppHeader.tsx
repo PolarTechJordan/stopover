@@ -5,6 +5,9 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { ChevronLeft, Home, Map, Plane, TicketCheck } from 'lucide-react';
 import { useOrderStore } from '@/lib/store/orderStore';
+import { t } from '@/lib/appPreferences';
+import { useAppPreferences } from './AppPreferenceProvider';
+import PreferenceToolbar from './PreferenceToolbar';
 
 type FlowHeaderConfig = {
   title: string;
@@ -14,28 +17,28 @@ type FlowHeaderConfig = {
 
 const flowHeaders: Record<string, Omit<FlowHeaderConfig, 'fallback'> & { fallback: string }> = {
   '/search': {
-    title: '航班计划',
-    step: 'Step 1/5',
+    title: 'flow.search.title',
+    step: 'flow.search.step',
     fallback: '/',
   },
   '/packages': {
-    title: '定制套餐',
-    step: 'Step 2/5',
+    title: 'flow.packages.title',
+    step: 'flow.packages.step',
     fallback: '/search',
   },
   '/checkout': {
-    title: '确认支付',
-    step: 'Step 3/5',
+    title: 'flow.checkout.title',
+    step: 'flow.checkout.step',
     fallback: '/packages',
   },
   '/order': {
-    title: '电子凭证',
-    step: 'Step 4/5',
+    title: 'flow.order.title',
+    step: 'flow.order.step',
     fallback: '/checkout',
   },
   '/journey': {
-    title: '行程追踪',
-    step: 'Step 5/5',
+    title: 'flow.journey.title',
+    step: 'flow.journey.step',
     fallback: '/order',
   },
 };
@@ -58,6 +61,7 @@ function writeStack(stack: string[]) {
 export default function MobileAppHeader() {
   const pathname = usePathname();
   const router = useRouter();
+  const { language } = useAppPreferences();
   const { currentOrder } = useOrderStore();
   const stackRef = useRef<string[]>([]);
 
@@ -72,7 +76,7 @@ export default function MobileAppHeader() {
     if (!currentOrder) {
       return {
         href: '/',
-        label: '返回首页',
+        label: language === 'zh-CN' ? '返回首页' : 'Back home',
         Icon: Home,
       };
     }
@@ -80,17 +84,17 @@ export default function MobileAppHeader() {
     if (pathname === '/journey') {
       return {
         href: `/order?id=${currentOrder.orderId}`,
-        label: '查看电子凭证',
+        label: language === 'zh-CN' ? '查看电子凭证' : 'View voucher',
         Icon: TicketCheck,
       };
     }
 
     return {
       href: `/journey?id=${currentOrder.orderId}`,
-      label: '查看行程追踪',
+      label: language === 'zh-CN' ? '查看行程追踪' : 'View tracking',
       Icon: Map,
     };
-  }, [currentOrder, pathname]);
+  }, [currentOrder, language, pathname]);
 
   useEffect(() => {
     const currentUrl = `${window.location.pathname}${window.location.search}`;
@@ -123,16 +127,17 @@ export default function MobileAppHeader() {
               </div>
             </div>
             <div className="min-w-0">
-              <div className="truncate text-sm font-black leading-tight text-slate-950">Stopover AI</div>
-              <div className="truncate text-[10px] font-bold text-slate-400">龙腾出行 · 中转礼宾</div>
+              <div className="truncate text-sm font-black leading-tight text-slate-950">{t(language, 'brand.short')}</div>
+              <div className="truncate text-[10px] font-bold text-slate-400">{t(language, 'brand.subtitle')}</div>
             </div>
           </Link>
+          <PreferenceToolbar compact />
           <Link
             href="/search"
             className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full bg-primary px-3 text-xs font-black text-white shadow-sm"
           >
             <Plane size={13} />
-            <span>预订</span>
+            <span>{t(language, 'mobile.book')}</span>
           </Link>
         </div>
       </header>
@@ -146,15 +151,21 @@ export default function MobileAppHeader() {
           type="button"
           onClick={handleBack}
           className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-800 transition active:scale-95 active:bg-slate-200"
-          aria-label="返回上一页"
+          aria-label={t(language, 'mobile.back')}
         >
           <ChevronLeft size={22} strokeWidth={2.4} />
         </button>
 
         <div className="min-w-0 flex-1 text-center">
-          <div className="truncate text-[10px] font-black uppercase tracking-[0.12em] text-primary">{flowConfig.step}</div>
-          <div className="truncate text-base font-black leading-tight text-slate-950">{flowConfig.title}</div>
+          <div className="truncate text-[10px] font-black uppercase tracking-[0.12em] text-primary">
+            {t(language, flowConfig.step as Parameters<typeof t>[1])}
+          </div>
+          <div className="truncate text-base font-black leading-tight text-slate-950">
+            {t(language, flowConfig.title as Parameters<typeof t>[1])}
+          </div>
         </div>
+
+        <PreferenceToolbar compact showTextScale={false} />
 
         <Link
           href={rightAction.href}

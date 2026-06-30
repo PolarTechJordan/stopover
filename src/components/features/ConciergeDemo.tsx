@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation';
 import {
   ArrowRight,
   BadgeCheck,
-  BatteryCharging,
   BedDouble,
   BriefcaseBusiness,
   CalendarClock,
@@ -22,7 +21,6 @@ import {
   Luggage,
   Map,
   MessageCircle,
-  Moon,
   Plane,
   QrCode,
   Route,
@@ -31,14 +29,10 @@ import {
   ShieldCheck,
   ShowerHead,
   Sparkles,
-  SunMedium,
   TicketCheck,
   UserRound,
-  UsersRound,
   Utensils,
-  WandSparkles,
   Wifi,
-  Zap,
 } from 'lucide-react';
 import {
   buildConciergePlan,
@@ -49,8 +43,18 @@ import {
 } from '@/lib/conciergeEngine';
 import { conciergePersonas, type ConciergePersonaTemplate } from '@/lib/conciergePersonas';
 import { addons, airports, packages } from '@/lib/mockData';
+import {
+  formatHours,
+  formatPieces,
+  getPackageLabel,
+  localizeAddon,
+  localizeAirport,
+  localizePackage,
+  t,
+} from '@/lib/appPreferences';
 import type { AddonSku, PackageSku } from '@/lib/types';
 import { useOrderStore } from '@/lib/store/orderStore';
+import { useAppPreferences } from '@/components/features/AppPreferenceProvider';
 
 type ChatItem = ConciergeMessage & {
   id: string;
@@ -79,6 +83,68 @@ const packageTone: Record<PackageSku, { label: string; className: string }> = {
   micro: { label: '城市微游', className: 'bg-emerald-50 text-emerald-700 border-emerald-100' },
   overnight: { label: '跨夜休息', className: 'bg-indigo-50 text-indigo-700 border-indigo-100' },
 };
+
+const packageToneEnglish: Record<PackageSku, string> = {
+  light: 'Airport-side recovery',
+  micro: 'City micro-tour',
+  overnight: 'Overnight rest',
+};
+
+const personaEnglishCopy: Record<string, { name: string; shortName: string; personaType: string; headline: string; scenarioPrompt: string; context: string; demoQuestions: string[] }> = {
+  'sin-business-micro': {
+    name: 'Explorer business traveler: 10h daytime Singapore stopover',
+    shortName: 'Business Micro-Tour',
+    personaType: 'Premium business traveler / first visit',
+    headline: 'Wants a light city loop, core landmarks and no missed connection.',
+    scenarioPrompt: 'I have a 10-hour stopover in Singapore with one carry-on. I want to see the city lightly without missing my flight.',
+    context: 'Price sensitivity is low; certainty, baggage safety and a classic route matter most.',
+    demoQuestions: ['I am extroverted and high-energy. What should I eat?', 'Where do I pick up my baggage?', 'Can I add an eSIM?'],
+  },
+  'sin-family-overnight': {
+    name: 'Family traveler: 23h overnight Singapore stopover',
+    shortName: 'Family Overnight',
+    personaType: 'Family with child / needs sleep',
+    headline: 'Needs sleep, food and less friction with two bags and a child.',
+    scenarioPrompt: 'My family has a 23-hour overnight stopover in Singapore with a child and two bags. We want hotel rest and a smooth next flight.',
+    context: 'Family travelers care about child rest, day-use rooms, baggage-to-room service and predictable transfer timing.',
+    demoQuestions: ['Can tired kids go straight to the hotel?', 'How should a low-energy family meal work?', 'When should we return to the airport?'],
+  },
+  'sin-red-eye-light': {
+    name: 'Red-eye recovery: 6.5h airport-side stopover',
+    shortName: 'Red-Eye Recovery',
+    personaType: 'Red-eye passenger / shower and sleep',
+    headline: 'Too short for city exit; lounge, shower and fast-track matter most.',
+    scenarioPrompt: 'I arrive at Changi after midnight with a 6.5-hour stopover. I just want to shower and sleep without leaving the airport.',
+    context: 'The concierge should block city-exit risk and recommend airport-side recovery benefits.',
+    demoQuestions: ['Why not leave the airport?', 'What food works for low energy at night?', 'Can I shower in the lounge?'],
+  },
+  'doh-premium-private': {
+    name: 'Premium private: 35h cross-day Doha stopover',
+    shortName: 'Doha Private',
+    personaType: 'Premium leisure / private transfer',
+    headline: 'Enough time for hotel rest, then a private Doha and desert route.',
+    scenarioPrompt: 'I have a 35-hour stopover in Doha. I want to sleep first, then take a private city and desert route without handling baggage.',
+    context: 'Higher budget traveler; Overnight Rest is the base, with private car, driver and guide layered on top.',
+    demoQuestions: ['Can the private route change on site?', 'Will the desert route affect return time?', 'How do hotel and baggage connect?'],
+  },
+  'ist-visa-risk': {
+    name: 'Compliance block: Istanbul entry eligibility uncertain',
+    shortName: 'Visa Risk',
+    personaType: 'Entry policy uncertain / needs risk control',
+    headline: 'Wants to leave the airport, but entry policy must be checked before selling a city tour.',
+    scenarioPrompt: 'I have an 8.5-hour stopover in Istanbul and want to see the Blue Mosque, but I am not sure whether my visa allows entry.',
+    context: 'The first version does not provide visa services; the concierge should explain the boundary and offer airport-side alternatives.',
+    demoQuestions: ['Why not sell the city tour directly?', 'What if I confirm I have a visa?', 'What airport-side alternatives are available?'],
+  },
+};
+
+function localizePersona(persona: ConciergePersonaTemplate, language: 'zh-CN' | 'en-US') {
+  if (language === 'zh-CN') return persona;
+  return {
+    ...persona,
+    ...(personaEnglishCopy[persona.id] ?? {}),
+  };
+}
 
 type MealPersona = 'E' | 'I';
 type MealEnergy = 'high' | 'low';
@@ -199,6 +265,7 @@ function makeId(prefix: string) {
 
 export default function ConciergeDemo() {
   const router = useRouter();
+  const { language } = useAppPreferences();
   const {
     setSearchParams,
     clearCustomizations,
@@ -212,8 +279,7 @@ export default function ConciergeDemo() {
     {
       id: 'welcome',
       role: 'assistant',
-      content:
-        '我是 Stopover 中转礼宾。你可以直接说航班、中转时长、行李和想做什么，也可以用推荐方案或角色模板开始演示。',
+      content: t(language, 'home.welcome'),
       source: 'system',
     },
   ]);
@@ -232,8 +298,22 @@ export default function ConciergeDemo() {
     () => conciergePersonas.find((item) => item.id === activePersonaId) ?? initialPersona,
     [activePersonaId],
   );
-  const activePackage = packages.find((item) => item.sku === plan.packageSku) ?? packages[0];
-  const airport = airports.find((item) => item.code === plan.airportCode) ?? airports[0];
+  const localizedActivePersona = localizePersona(activePersona, language);
+  const composerValue =
+    language === 'en-US' && inputValue === activePersona.scenarioPrompt
+      ? localizedActivePersona.scenarioPrompt
+      : inputValue;
+  const localizedQuickReplies =
+    language === 'zh-CN'
+      ? [...activePersona.demoQuestions, ...plan.quickReplies].slice(0, 6)
+      : [
+          ...localizedActivePersona.demoQuestions,
+          'Create the order',
+          'Show baggage custody details',
+          'Switch to overnight rest plan',
+        ].slice(0, 6);
+  const activePackage = localizePackage(packages.find((item) => item.sku === plan.packageSku) ?? packages[0], language);
+  const airport = localizeAirport(airports.find((item) => item.code === plan.airportCode) ?? airports[0], language);
   const validSelectedAddons = selectedAddons.filter((sku) => activePackage.addons.includes(sku));
   const totalPrice = validSelectedAddons.reduce((sum, sku) => {
     return sum + (addons.find((item) => item.sku === sku)?.price ?? 0);
@@ -243,6 +323,31 @@ export default function ConciergeDemo() {
     [mealEnergy, mealPersona, profile],
   );
   const hasMealMatch = validSelectedAddons.includes('ai-group-meal');
+  const localizedPlanSummary =
+    language === 'zh-CN'
+      ? plan.summary
+      : plan.packageSku === 'light'
+        ? 'A low-risk airport-side plan focused on lounge rest, baggage storage and fast-track certainty.'
+        : plan.packageSku === 'micro'
+          ? 'A fixed city micro-tour plan: hand off baggage, complete a compact route, and return with buffer.'
+          : 'An overnight rest plan combining hotel, transfers, baggage custody and return assurance in one order.';
+  const localizedSafeguards =
+    language === 'zh-CN'
+      ? plan.safeguards
+      : [
+          'Return time is calculated backward from the departure flight with a 90-minute airport buffer.',
+          'Baggage is photographed, RFID-tagged and covered up to ¥5,000 per piece.',
+          'If our route or transfer causes a missed connection, rebooking, lodging and concierge intervention are triggered.',
+        ];
+  const localizedModules =
+    language === 'zh-CN'
+      ? plan.modules
+      : [
+          { key: 'lounge', label: 'Lounge anchor', value: plan.packageSku === 'light' ? '3h' : plan.packageSku === 'micro' ? '2h' : '1h' },
+          { key: 'baggage', label: 'Baggage custody', value: profile.baggagePieces > 0 ? `RFID ${formatPieces(profile.baggagePieces, language)}` : 'No checked custody' },
+          { key: 'route', label: plan.packageSku === 'overnight' && !profile.wantsPrivateCar ? 'Hotel rest' : 'City service', value: plan.packageSku === 'light' ? 'Airport-side rest' : plan.routeName ? 'Fixed return-safe route' : 'Hotel / transfer flow' },
+          { key: 'addons', label: 'Add-ons', value: validSelectedAddons.length ? validSelectedAddons.map((sku) => localizeAddon(addons.find((item) => item.sku === sku)!, language).name).join(', ') : 'Optional' },
+        ];
 
   useEffect(() => {
     if (!didMountRef.current) {
@@ -275,6 +380,7 @@ export default function ConciergeDemo() {
           history: nextMessages.map(({ role, content }) => ({ role, content })),
           profile: nextProfile,
           selectedAddons: nextAddons,
+          locale: language,
         }),
       });
 
@@ -289,7 +395,7 @@ export default function ConciergeDemo() {
         typeof data.reply === 'string' && data.reply.trim()
           ? data.reply.trim()
           : nextPlan
-            ? buildDeterministicReply(nextPlan)
+            ? buildDeterministicReply(nextPlan, language)
             : '我会先按中转时长、行李和返场缓冲帮你核算方案。';
 
       if (nextPlan) {
@@ -322,7 +428,7 @@ export default function ConciergeDemo() {
         {
           id: makeId('assistant'),
           role: 'assistant',
-          content: buildDeterministicReply(local.plan),
+          content: buildDeterministicReply(local.plan, language),
           source: 'fallback:client',
         },
       ]);
@@ -333,6 +439,7 @@ export default function ConciergeDemo() {
 
   const selectPersonaTemplate = (persona: ConciergePersonaTemplate) => {
     const resolved = buildConciergePlan(persona.scenarioPrompt, persona.profile, persona.defaultAddons);
+    const localizedPersona = localizePersona(persona, language);
     setActivePersonaId(persona.id);
     setProfile(resolved.profile);
     setPlan(resolved.plan);
@@ -344,12 +451,12 @@ export default function ConciergeDemo() {
       {
         id: makeId('persona-user'),
         role: 'user',
-        content: persona.scenarioPrompt,
+        content: localizedPersona.scenarioPrompt,
       },
       {
         id: makeId('persona-assistant'),
         role: 'assistant',
-        content: buildDeterministicReply(resolved.plan),
+        content: buildDeterministicReply(resolved.plan, language),
         source: 'template',
       },
     ]);
@@ -382,17 +489,19 @@ export default function ConciergeDemo() {
 
   return (
     <div className="aurora-surface animate-aurora-flow relative flex h-[calc(100dvh-57px)] min-h-0 flex-col overflow-hidden text-slate-950 md:h-auto md:min-h-screen md:overflow-visible">
-      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(4,10,24,0.18)_0%,rgba(7,17,35,0.76)_72%,rgba(5,10,22,0.96)_100%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(247,251,255,0.2)_0%,rgba(219,232,246,0.44)_72%,rgba(15,23,42,0.18)_100%)]" />
       <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-[linear-gradient(90deg,rgba(40,231,255,0.18),rgba(255,122,69,0.12),rgba(124,61,255,0.16))] blur-3xl" />
       <section className="relative z-10 flex h-full min-h-0 w-full flex-1 flex-col overflow-hidden md:mx-auto md:grid md:h-auto md:max-w-7xl md:grid-cols-1 md:gap-5 md:overflow-visible md:px-4 md:py-5 lg:grid-cols-[280px_minmax(0,1fr)_360px] lg:px-8 lg:py-8">
         <aside className="hidden space-y-4 lg:block">
           <div className="liquid-glass-dark rounded-3xl p-4 text-white">
             <div className="flex items-center gap-2 text-sm font-black">
               <Gem size={17} className="text-cyan-200" />
-              <span>龙腾出行场景舱</span>
+              <span>{language === 'zh-CN' ? '龙腾出行履约场景舱' : 'Stopover scenario deck'}</span>
             </div>
             <p className="mt-2 text-xs font-semibold leading-5 text-slate-300">
-              航班、停留时段、行李、性格和能量进入同一个匹配引擎，推荐套餐与团餐一起随票锁定。
+              {language === 'zh-CN'
+                ? '航班、停留时段、行李、路线和返场缓冲进入同一个匹配引擎，推荐套餐与履约节点一起锁定。'
+                : 'Flights, layover time, baggage, route and return buffer feed one recommendation engine.'}
             </p>
           </div>
 
@@ -400,6 +509,7 @@ export default function ConciergeDemo() {
             {conciergePersonas.map((persona) => {
               const isActive = persona.id === activePersonaId;
               const tone = packageTone[persona.packageSku];
+              const localizedPersona = localizePersona(persona, language);
 
               return (
                 <button
@@ -413,17 +523,17 @@ export default function ConciergeDemo() {
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <div className={`text-sm font-black ${isActive ? 'text-slate-900' : 'text-white'}`}>{persona.shortName}</div>
+                      <div className={`text-sm font-black ${isActive ? 'text-slate-900' : 'text-white'}`}>{localizedPersona.shortName}</div>
                       <div className={`mt-1 text-[11px] font-semibold leading-4 ${isActive ? 'text-slate-500' : 'text-slate-300'}`}>
-                        {persona.personaType}
+                        {localizedPersona.personaType}
                       </div>
                     </div>
                     <span className={`shrink-0 rounded-full border px-2 py-1 text-[10px] font-black ${tone.className}`}>
-                      {tone.label}
+                      {language === 'zh-CN' ? tone.label : packageToneEnglish[persona.packageSku]}
                     </span>
                   </div>
                   <p className={`mt-3 text-[11px] font-semibold leading-5 ${isActive ? 'text-slate-600' : 'text-slate-200'}`}>
-                    {persona.headline}
+                    {localizedPersona.headline}
                   </p>
                   <div className={`mt-3 flex items-center gap-2 text-[10px] font-black ${isActive ? 'text-slate-400' : 'text-cyan-100/75'}`}>
                     <Plane size={12} />
@@ -449,9 +559,9 @@ export default function ConciergeDemo() {
                     </div>
                   </div>
                   <div>
-                    <h1 className="text-base font-black text-slate-950 md:text-lg">龙腾出行 Stopover AI</h1>
+                    <h1 className="text-base font-black text-slate-950 md:text-lg">{t(language, 'brand.name')}</h1>
                     <p className="text-[11px] font-bold text-slate-400">
-                      {lastSource.startsWith('dashscope') ? 'Qwen 多轮对话已连接' : '本地业务引擎兜底'} · MealPulse 团餐匹配 · {airport.nameZh}
+                      {lastSource.startsWith('dashscope') ? t(language, 'home.sourceConnected') : t(language, 'home.sourceFallback')} · RFID · {airport.nameZh}
                     </p>
                   </div>
                 </div>
@@ -459,9 +569,9 @@ export default function ConciergeDemo() {
 
               <div className="hidden grid-cols-3 gap-2 text-center sm:grid">
                 {[
-                  { label: '中转', value: `${profile.totalTransitHours}h`, icon: Clock3 },
-                  { label: '行李', value: `${profile.baggagePieces}件`, icon: Luggage },
-                  { label: '返场', value: '90min', icon: ShieldCheck },
+                  { label: language === 'zh-CN' ? '中转' : 'Layover', value: `${profile.totalTransitHours}h`, icon: Clock3 },
+                  { label: language === 'zh-CN' ? '行李' : 'Bags', value: formatPieces(profile.baggagePieces, language), icon: Luggage },
+                  { label: language === 'zh-CN' ? '返场' : 'Return', value: '90min', icon: ShieldCheck },
                 ].map((item) => {
                   const Icon = item.icon;
                   return (
@@ -481,58 +591,60 @@ export default function ConciergeDemo() {
               <div className="rounded-2xl border border-white/60 bg-white/72 p-4 shadow-sm backdrop-blur-xl">
                 <div className="flex items-center gap-2 text-xs font-black text-blue-700">
                   <BadgeCheck size={15} />
-                  <span>{activePersona.name}</span>
+                  <span>{localizedActivePersona.name}</span>
                 </div>
                 <p className="mt-2 text-xs font-semibold leading-6 text-blue-900/75">
-                  {activePersona.context}
+                  {localizedActivePersona.context}
                 </p>
               </div>
 
-              <div className="liquid-glass-dark meal-scan-line relative overflow-hidden rounded-3xl p-4 text-white shadow-2xl md:p-5">
+              <div className="liquid-glass-dark relative overflow-hidden rounded-3xl p-4 text-white shadow-2xl md:p-5">
                 <div className="relative z-10 flex flex-col gap-4">
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <div>
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="inline-flex items-center gap-1.5 rounded-full border border-cyan-200/35 bg-cyan-200/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-cyan-100">
-                          <WandSparkles size={12} />
-                          DragonPass MealPulse
+                          <ShieldCheck size={12} />
+                          {t(language, 'home.assuranceLabel')}
                         </span>
                         <span className="rounded-full bg-white/10 px-2.5 py-1 text-[10px] font-black text-orange-100">
-                          随票加购 ¥168
+                          {formatHours(profile.totalTransitHours, language)} · {airport.code}
                         </span>
                       </div>
                       <h2 className="mt-3 text-2xl font-black leading-tight tracking-normal text-white md:text-3xl">
-                        {mealMatch.name}
+                        {getPackageLabel(plan.packageSku, language)}
                       </h2>
                       <p className="mt-2 max-w-xl text-xs font-semibold leading-6 text-slate-200">
-                        {mealMatch.route}，按 {mealMatch.periodLabel}、{mealMatch.socialLabel}、{mealMatch.energyLabel} 自动锁定餐位和返场提醒。
+                        {localizedPlanSummary}
                       </p>
                     </div>
 
                     <div className="flex shrink-0 items-center gap-3 rounded-3xl border border-white/15 bg-white/10 p-3 backdrop-blur-xl">
                       <div className="meal-pulse-ring flex h-16 w-16 items-center justify-center rounded-full p-[3px]">
                         <div className="flex h-full w-full flex-col items-center justify-center rounded-full bg-slate-950 text-white">
-                          <span className="text-xl font-black leading-none">{mealMatch.score}</span>
-                          <span className="text-[9px] font-black text-cyan-100">MATCH</span>
+                          <span className="text-xl font-black leading-none">90</span>
+                          <span className="text-[9px] font-black text-cyan-100">MIN</span>
                         </div>
                       </div>
                       <div>
-                        <div className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-400">转化信号</div>
-                        <div className="mt-1 text-lg font-black text-orange-200">{mealMatch.lift}</div>
-                        <div className="mt-1 text-[10px] font-semibold text-slate-400">{mealMatch.table}</div>
+                        <div className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-400">{t(language, 'home.returnBuffer')}</div>
+                        <div className="mt-1 text-lg font-black text-orange-200">RFID</div>
+                        <div className="mt-1 text-[10px] font-semibold text-slate-400">
+                          {language === 'zh-CN' ? '行李 + 返场兜底' : 'Baggage + return care'}
+                        </div>
                       </div>
                     </div>
                   </div>
 
                   <div className="grid gap-3">
                     <div className="grid gap-2 sm:grid-cols-3">
-                      {mealMatch.reasons.map((reason, index) => (
+                      {localizedSafeguards.map((reason, index) => (
                         <div key={reason} className="rounded-2xl border border-white/14 bg-slate-950/46 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
                           <div className="mb-2 flex items-center gap-2 text-[10px] font-black text-cyan-100">
                             <span className="flex h-5 w-5 items-center justify-center rounded-full bg-cyan-200/18 text-cyan-50">
                               {index + 1}
                             </span>
-                            <span>推荐因子</span>
+                            <span>{t(language, 'home.recommendationFactors')}</span>
                           </div>
                           <p className="text-[11px] font-semibold leading-5 text-slate-100">{reason}</p>
                         </div>
@@ -542,10 +654,10 @@ export default function ConciergeDemo() {
                     <div className="rounded-2xl border border-white/14 bg-slate-950/58 p-3">
                       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                         {[
-                          { label: mealMatch.periodLabel, icon: getMealPeriod(profile.arrivalTimeStr) === 'day' ? SunMedium : Moon },
-                          { label: mealMatch.socialLabel, icon: UsersRound },
-                          { label: mealMatch.energyLabel, icon: mealEnergy === 'high' ? Zap : BatteryCharging },
-                          { label: mealMatch.label, icon: ChefHat },
+                          { label: localizedModules[0]?.value ?? '', icon: BriefcaseBusiness },
+                          { label: localizedModules[1]?.value ?? '', icon: Luggage },
+                          { label: localizedModules[2]?.label ?? '', icon: Map },
+                          { label: localizedModules[3]?.label ?? '', icon: TicketCheck },
                         ].map((item) => {
                           const Icon = item.icon;
                           return (
@@ -557,46 +669,23 @@ export default function ConciergeDemo() {
                         })}
                       </div>
                       <div className="mt-3 rounded-xl bg-white/8 px-3 py-2">
-                        <div className="text-[10px] font-black text-slate-300">返场动线</div>
-                        <div className="mt-1 text-[11px] font-semibold leading-5 text-white">{mealMatch.route}</div>
+                        <div className="text-[10px] font-black text-slate-300">{language === 'zh-CN' ? '履约动线' : 'Fulfillment path'}</div>
+                        <div className="mt-1 text-[11px] font-semibold leading-5 text-white">
+                          {localizedModules.map((item) => `${item.label}: ${item.value}`).join(' · ')}
+                        </div>
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex flex-col gap-3 border-t border-white/10 pt-3 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="flex gap-2">
-                      {(['E', 'I'] as MealPersona[]).map((item) => (
-                        <button
-                          key={item}
-                          type="button"
-                          onClick={() => setMealPersona(item)}
-                          className={`rounded-full px-3 py-2 text-[11px] font-black transition ${
-                            mealPersona === item
-                              ? 'bg-cyan-200 text-slate-950 shadow-lg shadow-cyan-400/20'
-                              : 'bg-white/8 text-slate-300 hover:bg-white/14'
-                          }`}
-                        >
-                          {item === 'E' ? 'E 人社交' : 'I 人低打扰'}
-                        </button>
-                      ))}
-                    </div>
-                    <div className="flex gap-2">
-                      {(['high', 'low'] as MealEnergy[]).map((item) => (
-                        <button
-                          key={item}
-                          type="button"
-                          onClick={() => setMealEnergy(item)}
-                          className={`rounded-full px-3 py-2 text-[11px] font-black transition ${
-                            mealEnergy === item
-                              ? 'bg-orange-200 text-slate-950 shadow-lg shadow-orange-400/20'
-                              : 'bg-white/8 text-slate-300 hover:bg-white/14'
-                          }`}
-                        >
-                          {item === 'high' ? '高能量' : '低能量'}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={createConciergeOrder}
+                    className="flex w-full items-center justify-center gap-2 rounded-2xl bg-white px-4 py-3 text-xs font-black text-slate-950 transition hover:bg-cyan-50"
+                  >
+                    <CreditCard size={15} />
+                    <span>{t(language, 'home.createOrder')}</span>
+                    <ArrowRight size={14} />
+                  </button>
                 </div>
               </div>
 
@@ -604,13 +693,13 @@ export default function ConciergeDemo() {
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <div className="text-[10px] font-black uppercase tracking-[0.16em] text-blue-600">
-                      当前推荐
+                      {t(language, 'home.currentRecommendation')}
                     </div>
-                    <h2 className="mt-1 truncate text-base font-black text-slate-950">{plan.packageName}</h2>
-                    <p className="mt-1 line-clamp-2 text-[11px] font-semibold leading-5 text-slate-500">{plan.summary}</p>
+                    <h2 className="mt-1 truncate text-base font-black text-slate-950">{getPackageLabel(plan.packageSku, language)}</h2>
+                    <p className="mt-1 line-clamp-2 text-[11px] font-semibold leading-5 text-slate-500">{localizedPlanSummary}</p>
                   </div>
                   <div className="shrink-0 rounded-2xl bg-blue-600 px-3 py-2 text-right text-white shadow-lg shadow-blue-600/25">
-                    <div className="text-[9px] font-bold opacity-80">总价</div>
+                    <div className="text-[9px] font-bold opacity-80">{t(language, 'home.assurancePrice')}</div>
                     <div className="text-lg font-black">¥{totalPrice}</div>
                   </div>
                 </div>
@@ -619,7 +708,7 @@ export default function ConciergeDemo() {
                   className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-950 px-4 py-3 text-xs font-black text-white transition active:scale-[0.99]"
                 >
                   <CreditCard size={15} />
-                  <span>生成订单与电子凭证</span>
+                  <span>{t(language, 'home.createOrder')}</span>
                   <ArrowRight size={14} />
                 </button>
               </div>
@@ -643,10 +732,10 @@ export default function ConciergeDemo() {
                   >
                     {message.role === 'assistant' && (
                       <span className="mb-1 block text-[10px] font-black uppercase tracking-[0.14em] text-blue-600">
-                        礼宾回答
+                        {t(language, 'home.quickReplies')}
                       </span>
                     )}
-                    {message.content}
+                    {message.id === 'welcome' ? t(language, 'home.welcome') : message.content}
                     {message.source && (
                       <div className="mt-2 text-[9px] font-bold text-slate-400">
                         {message.source}
@@ -667,7 +756,7 @@ export default function ConciergeDemo() {
                     <Sparkles size={15} />
                   </div>
                   <div className="rounded-2xl rounded-tl-md border border-slate-100 bg-white px-4 py-3 text-sm font-black text-slate-500 shadow-sm">
-                    正在读取 PRD 知识、套餐规则和当前会话...
+                    {language === 'zh-CN' ? '正在读取 PRD 知识、套餐规则和当前会话...' : 'Reading PRD knowledge, package rules and current context...'}
                   </div>
                 </div>
               )}
@@ -676,7 +765,7 @@ export default function ConciergeDemo() {
 
             <footer className="shrink-0 border-t border-slate-100 bg-white/96 px-3 pb-[calc(env(safe-area-inset-bottom)+12px)] pt-3 shadow-[0_-10px_30px_rgba(15,23,42,0.06)] md:bg-white/85 md:p-4 md:shadow-none">
               <div className="mb-3 flex gap-2 overflow-x-auto pb-1">
-                {[...activePersona.demoQuestions, ...plan.quickReplies].slice(0, 6).map((question) => (
+                {localizedQuickReplies.map((question) => (
                   <button
                     key={question}
                     onClick={() => void askConcierge(question)}
@@ -689,21 +778,21 @@ export default function ConciergeDemo() {
               <form
                 onSubmit={(event) => {
                   event.preventDefault();
-                  void askConcierge(inputValue);
+                  void askConcierge(composerValue);
                 }}
                 className="flex items-center gap-2 rounded-2xl bg-white px-3 py-2 shadow-sm ring-1 ring-slate-200 transition focus-within:ring-blue-200"
               >
                 <input
-                  value={inputValue}
+                  value={composerValue}
                   onChange={(event) => setInputValue(event.target.value)}
                   className="min-w-0 flex-1 bg-transparent px-1 py-2 text-sm font-semibold text-slate-700 outline-none placeholder:text-slate-400"
-                  placeholder="直接输入：中转时长、行李、想休息还是想出机场..."
+                  placeholder={t(language, 'home.inputPlaceholder')}
                 />
                 <button
                   type="submit"
-                  disabled={isAsking || !inputValue.trim()}
+                  disabled={isAsking || !composerValue.trim()}
                   className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-slate-300"
-                  title="发送给礼宾"
+                  title={language === 'zh-CN' ? '发送给礼宾' : 'Send to concierge'}
                 >
                   <Send size={17} />
                 </button>
@@ -732,13 +821,13 @@ export default function ConciergeDemo() {
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <div className="text-[11px] font-black uppercase tracking-[0.16em] text-cyan-100">
-                    当前推荐
+                    {t(language, 'home.currentRecommendation')}
                   </div>
-                  <h2 className="mt-2 text-2xl font-black text-white">{plan.packageName}</h2>
-                  <p className="mt-2 text-xs font-semibold leading-6 text-slate-300">{plan.summary}</p>
+                  <h2 className="mt-2 text-2xl font-black text-white">{getPackageLabel(plan.packageSku, language)}</h2>
+                  <p className="mt-2 text-xs font-semibold leading-6 text-slate-300">{localizedPlanSummary}</p>
                 </div>
                 <div className="rounded-2xl bg-cyan-200 px-3 py-2 text-right text-slate-950 shadow-lg shadow-cyan-400/25">
-                  <div className="text-[10px] font-bold opacity-80">总价</div>
+                  <div className="text-[10px] font-bold opacity-80">{t(language, 'home.assurancePrice')}</div>
                   <div className="text-xl font-black">¥{totalPrice}</div>
                 </div>
               </div>
@@ -748,12 +837,14 @@ export default function ConciergeDemo() {
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2 text-xs font-black text-orange-100">
                       <ChefHat size={16} />
-                      <span>{mealMatch.name}</span>
+                      <span>{language === 'zh-CN' ? mealMatch.name : 'AI meal slot'}</span>
                     </div>
                     <span className="text-[10px] font-black text-cyan-100">{mealMatch.score}%</span>
                   </div>
                   <p className="mt-2 text-[11px] font-semibold leading-5 text-slate-300">
-                    {mealMatch.periodLabel} / {mealMatch.socialLabel} / {mealMatch.energyLabel}，随电子凭证一起核销。
+                    {language === 'zh-CN'
+                      ? `${mealMatch.periodLabel} / ${mealMatch.socialLabel} / ${mealMatch.energyLabel}，随电子凭证一起核销。`
+                      : 'Optional meal redemption is attached to the same voucher.'}
                   </p>
                 </div>
               )}
@@ -773,8 +864,12 @@ export default function ConciergeDemo() {
                   return (
                     <div key={item.key} className="rounded-2xl bg-white/10 p-3">
                       <Icon size={16} className="text-cyan-100" />
-                      <div className="mt-2 text-[10px] font-bold text-slate-400">{item.label}</div>
-                      <div className="mt-1 text-xs font-black leading-5 text-white">{item.value}</div>
+                      <div className="mt-2 text-[10px] font-bold text-slate-400">
+                        {localizedModules.find((moduleItem) => moduleItem.key === item.key)?.label ?? item.label}
+                      </div>
+                      <div className="mt-1 text-xs font-black leading-5 text-white">
+                        {localizedModules.find((moduleItem) => moduleItem.key === item.key)?.value ?? item.value}
+                      </div>
                     </div>
                   );
                 })}
@@ -796,7 +891,7 @@ export default function ConciergeDemo() {
                 <div className="rounded-2xl border border-amber-100 bg-amber-50 p-3">
                   <div className="flex items-center gap-2 text-xs font-black text-amber-800">
                     <ShieldAlert size={15} />
-                    <span>需要确认</span>
+                    <span>{language === 'zh-CN' ? '需要确认' : 'Needs confirmation'}</span>
                   </div>
                   <p className="mt-2 text-[11px] font-semibold leading-5 text-amber-800/75">
                     {plan.missingSlots.join('、')}
@@ -808,13 +903,14 @@ export default function ConciergeDemo() {
 
           <div className="rounded-3xl border border-white/80 bg-white/82 p-5 shadow-sm">
             <div className="mb-4 flex items-center justify-between">
-              <h3 className="text-sm font-black text-slate-950">可核销权益</h3>
+              <h3 className="text-sm font-black text-slate-950">{t(language, 'home.voucherBenefits')}</h3>
               <span className="text-[10px] font-black text-slate-400">同一订单凭证</span>
             </div>
             <div className="space-y-2">
               {activePackage.addons.map((sku) => {
                 const Icon = iconMap[sku];
                 const item = addons.find((addon) => addon.sku === sku);
+                const localizedItem = item ? localizeAddon(item, language) : null;
                 const checked = selectedAddons.includes(sku);
 
                 return (
@@ -835,11 +931,11 @@ export default function ConciergeDemo() {
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-start justify-between gap-2">
-                          <div className="text-xs font-black leading-5 text-slate-800">{item?.name ?? sku}</div>
+                          <div className="text-xs font-black leading-5 text-slate-800">{localizedItem?.name ?? sku}</div>
                           <div className="shrink-0 text-xs font-black text-blue-600">+¥{item?.price ?? 0}</div>
                         </div>
                         <p className="mt-1 line-clamp-2 text-[10px] font-semibold leading-4 text-slate-500">
-                          {item?.description}
+                          {localizedItem?.description}
                         </p>
                       </div>
                     </div>
@@ -852,7 +948,7 @@ export default function ConciergeDemo() {
           <div className="rounded-3xl bg-slate-950 p-5 text-white shadow-xl">
             <div className="flex items-center gap-2 text-sm font-black">
               <QrCode size={18} className="text-orange-300" />
-              <span>下单与履约</span>
+              <span>{t(language, 'home.fulfillmentTitle')}</span>
             </div>
             <div className="mt-4 space-y-3">
               {plan.timeline.slice(0, 4).map((item) => (
@@ -871,7 +967,7 @@ export default function ConciergeDemo() {
               className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl bg-white px-4 py-3 text-xs font-black text-slate-950 transition hover:bg-blue-50"
             >
               <CreditCard size={15} />
-              <span>生成订单与电子凭证</span>
+              <span>{t(language, 'home.createOrder')}</span>
               <ArrowRight size={14} />
             </button>
             <Link
@@ -879,7 +975,7 @@ export default function ConciergeDemo() {
               className="mt-2 flex w-full items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-xs font-black text-white transition hover:bg-white/10"
             >
               <CalendarClock size={15} />
-              <span>查看履约追踪</span>
+              <span>{t(language, 'home.viewTracking')}</span>
             </Link>
           </div>
 

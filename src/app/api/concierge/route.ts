@@ -8,6 +8,7 @@ import {
   type ConciergeProfile,
 } from '@/lib/conciergeEngine';
 import type { AddonSku } from '@/lib/types';
+import type { LanguageCode } from '@/lib/appPreferences';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -17,6 +18,7 @@ interface ConciergeRequest {
   history?: ConciergeMessage[];
   profile?: Partial<ConciergeProfile>;
   selectedAddons?: AddonSku[];
+  locale?: LanguageCode;
 }
 
 const DEFAULT_BASE_URL = 'https://dashscope.aliyuncs.com/compatible-mode/v1';
@@ -57,13 +59,16 @@ function buildMessages(
 ) {
   const history = sanitizeHistory(body.history);
   const message = body.message?.trim() || '请根据我的中转情况推荐方案';
+  const locale = body.locale === 'en-US' ? 'en-US' : 'zh-CN';
 
   return [
     {
       role: 'system',
       content: [
         '你是 Stopover 中转游 App 的后台 LLM 礼宾大脑，不是营销文案生成器。',
-        '你必须用简体中文回答，像机场现场礼宾：具体、短句、有业务动作。',
+        locale === 'en-US'
+          ? 'You must answer in concise, business-specific English, like an airport concierge: concrete, short and action-oriented.'
+          : '你必须用简体中文回答，像机场现场礼宾：具体、短句、有业务动作。',
         '你具备三类能力：多轮对话槽位追踪、PRD 知识问答、机场中转权益产品礼宾推荐。',
         '不要声称真实出票或真实扣款；这是 demo，但业务规则要按真实产品解释。',
         '回答必须围绕：中转时长、行李托管、套餐权益、城市路线、增值项、履约保障。',
@@ -101,7 +106,8 @@ function buildMessages(
 
 async function callModel(body: ConciergeRequest, profile: ConciergeProfile, plan: ConciergePlan) {
   const apiKey = process.env.DASHSCOPE_API_KEY || process.env.COMPATIBLE_API_KEY;
-  const fallback = buildDeterministicReply(plan);
+  const locale = body.locale === 'en-US' ? 'en-US' : 'zh-CN';
+  const fallback = buildDeterministicReply(plan, locale);
 
   if (!apiKey) {
     return { reply: fallback, source: 'fallback:no-key' };

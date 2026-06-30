@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
-import DemoController from "@/components/features/DemoController";
-import MobileAppHeader from "@/components/features/MobileAppHeader";
-import Link from 'next/link';
+import AppChrome from "@/components/features/AppChrome";
+import { AppPreferenceProvider } from "@/components/features/AppPreferenceProvider";
+import { APP_PREFERENCES_STORAGE_KEY } from "@/lib/appPreferences";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -16,9 +17,24 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "龙腾出行 Stopover | AI 中转套餐、团餐匹配与微游服务",
-  description: "解决中转旅客时间、行李、餐食和体验焦虑。以机场贵宾室为信任锚，提供行李全托管、AI 团餐匹配与标准化城市微游体验。",
+  title: "龙腾出行 Stopover | AI 中转套餐与微游服务",
+  description: "解决中转旅客时间、行李和体验焦虑。以机场贵宾室为信任锚，提供行李全托管、标准化城市微游和误机保障体验。",
 };
+
+const preferenceBootScript = `
+try {
+  var stored = JSON.parse(localStorage.getItem('${APP_PREFERENCES_STORAGE_KEY}') || '{}');
+  var root = document.documentElement;
+  var theme = stored.theme === 'dark' || stored.theme === 'light' ? stored.theme : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  var language = stored.language === 'en-US' || stored.language === 'zh-CN' ? stored.language : 'zh-CN';
+  var textScale = stored.textScale === 'compact' || stored.textScale === 'large' || stored.textScale === 'comfortable' ? stored.textScale : 'comfortable';
+  root.dataset.theme = theme;
+  root.dataset.lang = language;
+  root.dataset.textScale = textScale;
+  root.lang = language;
+  root.style.colorScheme = theme;
+} catch (error) {}
+`;
 
 export default function RootLayout({
   children,
@@ -26,53 +42,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="zh-CN" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
-      <body className="h-full min-h-full bg-sand text-slate-900 flex flex-col font-sans selection:bg-primary/20">
-        <MobileAppHeader />
-
-        {/* Navigation */}
-        <header className="sticky top-0 z-40 hidden bg-white/80 backdrop-blur-md border-b border-slate-200/60 px-4 py-3 sm:px-6 sm:py-4 md:flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Link href="/" className="flex items-center gap-2 group">
-              <div className="meal-pulse-ring flex h-8 w-8 items-center justify-center rounded-lg p-[1px] text-white shadow-md transition-transform duration-200 group-hover:scale-105">
-                <div className="flex h-full w-full items-center justify-center rounded-lg bg-slate-950 text-sm font-extrabold">
-                  龙
-                </div>
-              </div>
-              <span className="font-extrabold text-lg tracking-tight bg-gradient-to-r from-slate-950 via-primary to-slate-950 bg-clip-text text-transparent sm:text-xl">
-                龙腾出行 Stopover <span className="text-accent font-medium text-sm">中转游</span>
-              </span>
-            </Link>
-          </div>
-          <nav className="hidden md:flex items-center gap-6 text-sm font-semibold text-slate-600">
-            <Link href="/" className="hover:text-primary transition-colors">AI 礼宾 Demo</Link>
-            <Link href="/search" className="hover:text-primary transition-colors">预订中转套餐</Link>
-            <Link href="/pitch" className="hover:text-primary transition-colors">展示 PPT</Link>
-            <span className="text-slate-300">|</span>
-            <span className="text-xs font-normal text-slate-400 bg-slate-100 px-2 py-1 rounded-full">
-              MealPulse + State Machine Demo
-            </span>
-          </nav>
-        </header>
-
-        {/* Main Content Area */}
-        <main className="flex-1 flex min-h-0 min-w-0 flex-col">
-          {children}
-        </main>
-
-        {/* Footer */}
-        <footer className="hidden bg-slate-900 text-slate-400 text-xs py-8 px-6 border-t border-slate-800 text-center md:block">
-          <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-            <div>
-              <p className="font-bold text-slate-200 mb-1 text-sm">龙腾出行 Stopover 中转游项目 Web 演示原型</p>
-              <p>以休息室为信任锚 + 行李全托管 + AI 团餐匹配 + 模块化城市服务，激活长中转等待商机</p>
-            </div>
-            <p>© 2026 PolarTech / Jordan. All rights reserved.</p>
-          </div>
-        </footer>
-
-        {/* Floating Demo Controller */}
-        <DemoController />
+    <html lang="zh-CN" suppressHydrationWarning className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
+      <body className="h-full min-h-full bg-sand text-slate-900 font-sans selection:bg-primary/20">
+        <Script
+          id="stopover-preferences"
+          strategy="beforeInteractive"
+          dangerouslySetInnerHTML={{ __html: preferenceBootScript }}
+        />
+        <AppPreferenceProvider>
+          <AppChrome>{children}</AppChrome>
+        </AppPreferenceProvider>
       </body>
     </html>
   );
