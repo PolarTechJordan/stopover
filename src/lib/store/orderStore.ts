@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { StopoverOrder, AirportCode, PackageSku, AddonSku, Flight, BaggageStatus, BaggageTracking } from '../types';
-import { packages, airports } from '../mockData';
+import { packages, airports, addons, tourRoutes } from '../mockData';
 import { getNextStatus } from '../state-machine/orderState';
 import dayjs from 'dayjs';
 
@@ -13,6 +13,7 @@ interface SearchParams {
   totalTransitHours: number;
   arrivalTimeStr: string;
   departureTimeStr: string;
+  baggagePieces?: number;
 }
 
 interface OrderState {
@@ -99,25 +100,24 @@ export const useOrderStore = create<OrderState>()(
 
         const orderId = 'SO' + Math.floor(100000 + Math.random() * 900000);
         const rfidTag = 'RFID' + Math.floor(10000000 + Math.random() * 90000000);
+        const baggagePieces = Math.max(0, searchParams.baggagePieces ?? 1);
 
         // Calculate amounts
         let totalAmount = selectedPkg.price;
         // Sum addon prices
         selectedAddonSkus.forEach((addonSku) => {
-          const ad = selectedPkg.addons.includes(addonSku);
-          if (ad) {
-            // Note: we can assume standard addon pricing
-            const adPrice = 100; // default mock price if not found
-            totalAmount += adPrice;
+          if (selectedPkg.addons.includes(addonSku)) {
+            totalAmount += addons.find((addon) => addon.sku === addonSku)?.price ?? 0;
           }
         });
 
-        // Setup default baggage tracking if package is not light
-        const hasBaggage = selectedPkg.sku !== 'light' || selectedAddonSkus.includes('shower');
+        // All three PRD packages include either luggage storage or full托管.
+        const hasBaggage = true;
         const baggage: BaggageTracking | undefined = hasBaggage ? {
           trackingId: 'BAG' + Math.floor(100000 + Math.random() * 900000),
           orderId,
           rfidTag,
+          pieceCount: baggagePieces,
           pickupAt: dayjs(arrivalFlight.arrivalTime).toISOString(),
           currentLocation: selectedAirport.nameZh + ' - 待收件',
           status: 'received' as const,
@@ -133,9 +133,10 @@ export const useOrderStore = create<OrderState>()(
         } : undefined;
 
         // Setup City Tour if micro
+        const selectedRoute = tourRoutes.find((route) => route.id === selectedAirport.cityTourRoutes[0]);
         const cityTour = selectedPkg.sku === 'micro' ? {
           routeId: selectedAirport.cityTourRoutes[0],
-          routeName: '新加坡市区经典 4 小时微游',
+          routeName: selectedRoute?.name ?? `${selectedAirport.nameZh}经典 4 小时微游`,
           departureTime: '09:00',
           guideId: 'GUIDE88',
           guideName: '陈向导 (John Chen)',

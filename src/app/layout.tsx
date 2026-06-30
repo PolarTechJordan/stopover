@@ -28,13 +28,13 @@ export default function RootLayout({
     <html lang="zh-CN" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
       <body className="min-h-full bg-sand text-slate-900 flex flex-col font-sans selection:bg-primary/20">
         {/* Navigation */}
-        <header className="sticky top-0 z-40 bg-white/70 backdrop-blur-md border-b border-slate-200/60 px-6 py-4 flex items-center justify-between">
+        <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-200/60 px-4 py-3 sm:px-6 sm:py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Link href="/" className="flex items-center gap-2 group">
               <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white font-extrabold text-lg shadow-md group-hover:scale-105 transition-transform duration-200">
                 S
               </div>
-              <span className="font-extrabold text-xl tracking-tight bg-gradient-to-r from-slate-950 via-primary to-slate-950 bg-clip-text text-transparent">
+              <span className="font-extrabold text-lg tracking-tight bg-gradient-to-r from-slate-950 via-primary to-slate-950 bg-clip-text text-transparent sm:text-xl">
                 Stopover <span className="text-accent font-medium text-sm">中转游</span>
               </span>
             </Link>
@@ -51,12 +51,12 @@ export default function RootLayout({
         </header>
 
         {/* Main Content Area */}
-        <main className="flex-1 flex flex-col">
+        <main className="flex-1 flex min-w-0 flex-col">
           {children}
         </main>
 
         {/* Footer */}
-        <footer className="bg-slate-900 text-slate-400 text-xs py-8 px-6 border-t border-slate-800 text-center">
+        <footer className="hidden bg-slate-900 text-slate-400 text-xs py-8 px-6 border-t border-slate-800 text-center md:block">
           <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
             <div>
               <p className="font-bold text-slate-200 mb-1 text-sm">Stopover 中转游项目 Web 演示原型</p>

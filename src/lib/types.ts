@@ -73,6 +73,7 @@ export interface BaggageTracking {
   trackingId: string;
   orderId: string;
   rfidTag: string;
+  pieceCount: number;
   pickupAt: string;          // ISO
   currentLocation: string;   // "樟宜机场 T1 贵宾厅"
   status: BaggageStatus;

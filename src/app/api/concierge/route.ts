@@ -1,89 +1,109 @@
 import { NextResponse } from 'next/server';
+import {
+  buildConciergePlan,
+  buildDeterministicReply,
+  defaultConciergeProfile,
+  type ConciergeMessage,
+  type ConciergePlan,
+  type ConciergeProfile,
+} from '@/lib/conciergeEngine';
+import type { AddonSku } from '@/lib/types';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-type ConciergeStage = 'opening' | 'profile' | 'plan' | 'fulfillment';
-
 interface ConciergeRequest {
   message?: string;
-  stage?: ConciergeStage;
-  scenario?: {
-    airportCode?: string;
-    arrivalFlightNo?: string;
-    departureFlightNo?: string;
-    arrivalTimeStr?: string;
-    departureTimeStr?: string;
-    layoverHours?: number;
-    totalTransitHours?: number;
-  };
+  history?: ConciergeMessage[];
+  profile?: Partial<ConciergeProfile>;
+  selectedAddons?: AddonSku[];
 }
 
 const DEFAULT_BASE_URL = 'https://dashscope.aliyuncs.com/compatible-mode/v1';
 const DEFAULT_MODEL = 'qwen3.7-max';
 
-const fallbackReplies: Record<ConciergeStage, string> = {
-  opening:
-    '可以。我会先看中转时长和离境时间，再把行李、贵宾厅、路线和误机保障合成一个安全方案。',
-  profile:
-    '你这段是新加坡白天 10 小时中转。扣掉入境、返程和安检缓冲后，建议只使用 8 小时，保留足够登机余量。',
-  plan:
-    '推荐微游包：¥780 起，包含行李全托管、贵宾厅 2 小时、4 小时城市经典路线、专车接送和误机保障。',
-  fulfillment:
-    '下单后会生成电子凭证和 RFID 行李卡。系统按 16:50 返抵机场倒推提醒，超时即触发快速返程、VIP 安检和客服兜底。',
-};
+const stopoverKnowledge = [
+  '产品定位：以休息室为信任锚 + 行李全托管 + 模块化城市服务，把 6-48 小时机场等待升级为轻量级目的地体验。',
+  '核心痛点：时间焦虑、行李焦虑、决策焦虑、体验焦虑。',
+  'MVP 必须覆盖三档套餐：轻享包、微游包、过夜包。',
+  '轻享包：6-8 小时中转，休息室 3h + 行李寄存 + 快速安检，¥260-320。',
+  '微游包：10-18 小时白天中转，休息室 2h + 行李全托管 + 城市 4h 游 + 接送 + 误机保障，¥680-880。',
+  '过夜包：12-36 小时跨夜中转，休息室 1h + 行李托管 + 酒店/钟点房 + 接送，¥780-1200。',
+  '行李全托管：中转柜台收件，RFID + 拍照登记 + 用户签字，15 分钟内转运至合作贵宾厅/酒店，每件最高 ¥5000 行李险。',
+  '城市微游：固定时段、固定路线、专车 + 中文/英文向导 + 误时保护，原则是景点集中、避开高峰、确保 60 分钟前回到安检口。',
+  '增值项：eSIM、接送机、酒店钟点房、淋浴/睡眠舱、机场餐饮券、私人包车。',
+  '误机保障：如我方城市游/酒店/接送导致登机前 60 分钟未到安检口，自动启动改签协助、酒店餐食赔付，客服 5 分钟内介入。',
+  '竞品差异：不绑定单一航司，机场内外全链路，行李全托管，3 档套餐 + 增值项，按多枢纽复制。',
+  '首个 PoC 枢纽建议新加坡樟宜，中文友好、机场生态成熟、城市路线集中。',
+].join('\n');
 
-function resolveStage(stage: unknown): ConciergeStage {
-  if (stage === 'profile' || stage === 'plan' || stage === 'fulfillment') {
-    return stage;
-  }
-  return 'opening';
+function sanitizeHistory(history: ConciergeMessage[] | undefined) {
+  if (!Array.isArray(history)) return [];
+
+  return history
+    .filter((item) => (item.role === 'user' || item.role === 'assistant') && typeof item.content === 'string')
+    .slice(-10)
+    .map((item) => ({
+      role: item.role,
+      content: item.content.slice(0, 1200),
+    }));
 }
 
-function buildPrompt(body: ConciergeRequest, stage: ConciergeStage) {
-  const scenario = body.scenario ?? {};
+function buildMessages(
+  body: ConciergeRequest,
+  profile: ConciergeProfile,
+  plan: ConciergePlan,
+) {
+  const history = sanitizeHistory(body.history);
+  const message = body.message?.trim() || '请根据我的中转情况推荐方案';
+
   return [
     {
       role: 'system',
       content: [
-        '你是 Stopover 中转游的 AI 礼宾销售助手。',
-        '产品目标：为 6-48 小时中转旅客提供机场生态一站式服务包，把休息室单点消费升级为套餐化消费。',
-        '必须用简体中文回答，非技术、短句、像现场礼宾，不要使用 Markdown。',
-        '核心套餐：轻享包 6-8h ¥260-320，休息室3h+行李寄存+快速安检；微游包 10-18h ¥680-880，休息室2h+行李全托管+城市4h游+接送+误机保障；过夜包 12-36h ¥780-1200，休息室1h+行李托管+酒店/钟点房+接送。',
-        '必须强调确定性：固定路线、RFID 行李托管、60 分钟前回到安检口、误机保障。',
-        '当前 demo 推荐首站新加坡樟宜，航班 SQ833 08:30 到达，SQ322 18:30 离境，总中转 10 小时，服务预留 8 小时。',
-        '如果用户问泛泛问题，仍然引导回中转时长、行李、城市微游、误机保障四个决策点。',
+        '你是 Stopover 中转游 App 的后台 LLM 礼宾大脑，不是营销文案生成器。',
+        '你必须用简体中文回答，像机场现场礼宾：具体、短句、有业务动作。',
+        '你具备三类能力：多轮对话槽位追踪、PRD 知识问答、机场中转权益产品礼宾推荐。',
+        '不要声称真实出票或真实扣款；这是 demo，但业务规则要按真实产品解释。',
+        '回答必须围绕：中转时长、行李托管、套餐权益、城市路线、增值项、履约保障。',
+        '当用户问知识类问题，直接依据产品知识回答；当用户问预订类问题，推动下一步确认。',
+        '不要输出 Markdown 表格。每次最多 4 句，除非用户要求详细说明。',
+        '',
+        'Stopover 产品知识：',
+        stopoverKnowledge,
       ].join('\n'),
     },
     {
-      role: 'user',
+      role: 'system',
       content: JSON.stringify(
         {
-          stage,
-          user_message: body.message || '我在新加坡中转 10 小时，想轻装出机场看看城市',
-          scenario: {
-            airportCode: scenario.airportCode || 'SIN',
-            arrivalFlightNo: scenario.arrivalFlightNo || 'SQ833',
-            departureFlightNo: scenario.departureFlightNo || 'SQ322',
-            arrivalTimeStr: scenario.arrivalTimeStr || '2026-07-01 08:30',
-            departureTimeStr: scenario.departureTimeStr || '2026-07-01 18:30',
-            layoverHours: scenario.layoverHours ?? 8,
-            totalTransitHours: scenario.totalTransitHours ?? 10,
-          },
-          response_contract:
-            '只输出 1-3 句自然中文，最多 90 字。不要列长清单。stage=plan 时要给出套餐名和价格；stage=fulfillment 时要说 RFID 和误机保障。',
+          current_profile: profile,
+          deterministic_plan: plan,
+          response_rules: [
+            '如果用户补充了新约束，优先承认并调整口径。',
+            '如果 deterministic_plan 已给出 packageName 和 routeName，应使用它，不要编造其他 SKU。',
+            '若信息不足，最多问 1 个关键问题，并给出默认推荐。',
+            '涉及行李和误机保障时要给出 RFID、60/90 分钟、最高 ¥5000/件等硬规则。',
+          ],
         },
         null,
         2,
       ),
     },
+    ...history,
+    {
+      role: 'user',
+      content: message,
+    },
   ];
 }
 
-async function callDashScope(body: ConciergeRequest, stage: ConciergeStage) {
+async function callModel(body: ConciergeRequest, profile: ConciergeProfile, plan: ConciergePlan) {
   const apiKey = process.env.DASHSCOPE_API_KEY || process.env.COMPATIBLE_API_KEY;
+  const fallback = buildDeterministicReply(plan);
+
   if (!apiKey) {
-    return { reply: fallbackReplies[stage], source: 'fallback:no-key' };
+    return { reply: fallback, source: 'fallback:no-key' };
   }
 
   const baseUrl = process.env.COMPATIBLE_BASE_URL || DEFAULT_BASE_URL;
@@ -102,9 +122,9 @@ async function callDashScope(body: ConciergeRequest, stage: ConciergeStage) {
       },
       body: JSON.stringify({
         model,
-        messages: buildPrompt(body, stage),
+        messages: buildMessages(body, profile, plan),
         temperature,
-        max_tokens: 220,
+        max_tokens: 360,
         stream: false,
         enable_thinking: false,
       }),
@@ -114,18 +134,18 @@ async function callDashScope(body: ConciergeRequest, stage: ConciergeStage) {
     if (!response.ok) {
       const detail = await response.text();
       console.warn('DashScope concierge call failed', response.status, detail.slice(0, 240));
-      return { reply: fallbackReplies[stage], source: `fallback:http-${response.status}` };
+      return { reply: fallback, source: `fallback:http-${response.status}` };
     }
 
     const data = await response.json();
     const reply = data?.choices?.[0]?.message?.content?.trim();
     return {
-      reply: reply || fallbackReplies[stage],
+      reply: reply || fallback,
       source: reply ? `dashscope:${model}` : 'fallback:empty',
     };
   } catch (error) {
     console.warn('DashScope concierge call errored', error);
-    return { reply: fallbackReplies[stage], source: 'fallback:error' };
+    return { reply: fallback, source: 'fallback:error' };
   } finally {
     clearTimeout(timer);
   }
@@ -133,16 +153,24 @@ async function callDashScope(body: ConciergeRequest, stage: ConciergeStage) {
 
 export async function POST(request: Request) {
   const body = (await request.json().catch(() => ({}))) as ConciergeRequest;
-  const stage = resolveStage(body.stage);
-  const result = await callDashScope(body, stage);
+  const message = body.message?.trim() || '';
+  const { profile, plan } = buildConciergePlan(
+    message,
+    body.profile ?? defaultConciergeProfile,
+    body.selectedAddons ?? [],
+  );
+  const result = await callModel(body, profile, plan);
 
   return NextResponse.json({
-    stage,
     ...result,
+    profile,
+    plan,
     recommendations: {
-      packageSku: stage === 'opening' || stage === 'profile' ? null : 'micro',
-      packageName: stage === 'opening' || stage === 'profile' ? null : '微游包',
-      airportCode: body.scenario?.airportCode || 'SIN',
+      packageSku: plan.packageSku,
+      packageName: plan.packageName,
+      airportCode: plan.airportCode,
+      addons: plan.recommendedAddons,
+      routeId: plan.routeId,
     },
   });
 }

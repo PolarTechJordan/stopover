@@ -4,11 +4,11 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useOrderStore } from '@/lib/store/orderStore';
-import { airports, mockFlightCases, MockFlightCase } from '@/lib/mockData';
+import { airports, mockFlightCases } from '@/lib/mockData';
 import { AirportCode } from '@/lib/types';
 import { 
-  Plane, Clock, ChevronRight, HelpCircle, Check, Info, 
-  AlertTriangle, Calendar, Award, Compass, RefreshCw 
+  Clock, ChevronRight, Check, Info,
+  AlertTriangle, Calendar, RefreshCw,
 } from 'lucide-react';
 import dayjs from 'dayjs';
 

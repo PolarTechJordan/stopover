@@ -90,7 +90,7 @@ export const packages: Package[] = [
       '中转延误/误机全面安心保障与改签协助'
     ],
     recommendedLayover: { minHours: 12, maxHours: 36 },
-    addons: ['esim', 'transfer', 'private-car', 'meal-voucher'],
+    addons: ['esim', 'transfer', 'hotel-dayuse', 'private-car', 'meal-voucher'],
   },
 ];
 

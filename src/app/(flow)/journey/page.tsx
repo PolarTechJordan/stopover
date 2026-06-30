@@ -1,19 +1,18 @@
 'use client';
 
-import React, { useEffect, useState, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import React, { useState, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useOrderStore } from '@/lib/store/orderStore';
-import { tourRoutes, airports, addons } from '@/lib/mockData';
+import { tourRoutes, airports } from '@/lib/mockData';
 import { BaggageStatus } from '@/lib/types';
 import { 
-  Briefcase, Clock, Compass, ShieldCheck, MapPin, 
-  User, Phone, Car, ShieldAlert, Award, Wifi, 
-  Coffee, RefreshCw, AlertTriangle, CheckCircle 
+  Briefcase, Clock, Compass, MapPin,
+  User, Phone, Car, ShieldAlert, Wifi,
+  CheckCircle,
 } from 'lucide-react';
 import Link from 'next/link';
 
 function JourneyContent() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const orderId = searchParams.get('id');
   const { currentOrder, transitionOrder } = useOrderStore();
@@ -33,14 +32,6 @@ function JourneyContent() {
 
   const currentAirport = airports.find(a => a.code === currentOrder.layoverAirport)!;
   const tourDetail = currentOrder.cityTour ? tourRoutes.find(r => r.id === currentOrder.cityTour?.routeId) : null;
-
-  // Formatting date
-  const formatDate = (isoStr: string) => {
-    return new Date(isoStr).toLocaleTimeString('zh-CN', {
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
 
   // Baggage timeline steps
   const baggageSteps: { status: BaggageStatus; label: string; desc: string }[] = [
@@ -62,26 +53,24 @@ function JourneyContent() {
     return order.indexOf(currentStatus);
   };
 
-  const currentBaggageStepIdx = currentOrder.baggage ? getBaggageStepIndex(currentOrder.baggage.status) : -1;
-
   return (
-    <div className="flex-1 py-8 px-6 max-w-7xl mx-auto w-full">
+    <div className="flex-1 w-full max-w-7xl mx-auto px-4 py-5 pb-24 sm:px-6 sm:py-8 md:pb-8">
       {/* Top Breadcrumb & Status */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-slate-200/60 pb-6 mb-8">
-        <div>
+      <div className="mb-5 flex flex-col items-start justify-between gap-4 border-b border-slate-200/60 pb-5 md:mb-8 md:flex-row md:items-center md:pb-6">
+        <div className="min-w-0">
           <div className="flex items-center gap-2 mb-1">
             <span className="text-xs font-bold text-slate-400">实时行程追踪面板</span>
             <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-ping" />
             <span className="text-[10px] text-green-600 font-bold bg-green-50 px-2 py-0.5 rounded-full">实时定位已连接</span>
           </div>
-          <h1 className="text-2xl font-black text-slate-900 flex items-center gap-2">
+          <h1 className="flex items-center gap-2 break-words text-xl font-black leading-tight text-slate-900 md:text-2xl">
             <span>正在追踪 {currentOrder.orderId} 的中转行程</span>
           </h1>
         </div>
 
         <Link 
           href={`/order?id=${currentOrder.orderId}`}
-          className="text-xs bg-white border border-slate-200 hover:border-slate-300 font-bold px-4 py-2.5 rounded-xl text-slate-700 transition-colors shadow-sm"
+          className="w-full text-center text-xs bg-white border border-slate-200 hover:border-slate-300 font-bold px-4 py-3 rounded-xl text-slate-700 transition-colors shadow-sm md:w-auto md:py-2.5"
         >
           查看电子凭证 (QR)
         </Link>
@@ -89,12 +78,12 @@ function JourneyContent() {
 
       {/* Extreme Delay / Missed Flight Guarantee Alert */}
       {currentOrder.status === 'missed_flight' && (
-        <div className="bg-rose-50 border-2 border-rose-200 rounded-3xl p-6 mb-8 flex flex-col md:flex-row gap-5 items-start">
+        <div className="bg-rose-50 border-2 border-rose-200 rounded-3xl p-4 mb-5 flex flex-col gap-4 items-start md:mb-8 md:flex-row md:gap-5 md:p-6">
           <div className="w-12 h-12 rounded-2xl bg-rose-100 flex items-center justify-center text-rose-600 flex-shrink-0 animate-bounce">
             <ShieldAlert size={26} />
           </div>
           <div className="flex-1">
-            <h3 className="font-extrabold text-rose-800 text-lg mb-1">⚠️ 触发中转“无忧保障计划” (SOP 启动)</h3>
+            <h3 className="font-extrabold text-rose-800 text-base mb-1 md:text-lg">触发中转“无忧保障计划” (SOP 启动)</h3>
             <p className="text-xs text-rose-700 leading-relaxed mb-4">
               因城市微游路况延误，致使您未能于登机前 60 分钟到达安检口，系统已自动判定误机并触发安全托管应急机制。
             </p>
@@ -125,12 +114,12 @@ function JourneyContent() {
       )}
 
       {currentOrder.status === 'refunded' && (
-        <div className="bg-emerald-50 border-2 border-emerald-200 rounded-3xl p-6 mb-8 flex gap-5 items-start">
+        <div className="bg-emerald-50 border-2 border-emerald-200 rounded-3xl p-4 mb-5 flex gap-4 items-start md:mb-8 md:gap-5 md:p-6">
           <div className="w-12 h-12 rounded-2xl bg-emerald-100 flex items-center justify-center text-emerald-600 flex-shrink-0">
             <CheckCircle size={26} />
           </div>
           <div>
-            <h3 className="font-extrabold text-emerald-800 text-lg mb-1">✓ 误机险赔付成功，理赔已入账</h3>
+            <h3 className="font-extrabold text-emerald-800 text-base mb-1 md:text-lg">误机险赔付成功，理赔已入账</h3>
             <p className="text-xs text-emerald-700 leading-relaxed mb-1">
               套餐实付金额 <strong>¥{currentOrder.totalAmount}</strong> 已全额退款原路退回。
             </p>
@@ -142,24 +131,24 @@ function JourneyContent() {
       )}
 
       {/* Tabs */}
-      <div className="flex border-b border-slate-200 mb-6">
+      <div className="mb-5 flex gap-2 overflow-x-auto border-b-0 pb-1 md:mb-6 md:gap-0 md:border-b md:border-slate-200 md:overflow-visible md:pb-0">
         <button
           onClick={() => setActiveTab('baggage')}
-          className={`flex-1 py-3 font-bold text-sm text-center border-b-2 transition-all flex items-center justify-center gap-1.5 ${
+          className={`min-w-[165px] flex-1 rounded-2xl border px-3 py-3 font-bold text-xs text-center transition-all flex items-center justify-center gap-1.5 md:min-w-0 md:rounded-none md:border-x-0 md:border-t-0 md:border-b-2 md:text-sm ${
             activeTab === 'baggage' 
-              ? 'border-primary text-primary' 
-              : 'border-transparent text-slate-500 hover:text-slate-700'
+              ? 'border-primary bg-white text-primary shadow-sm md:bg-transparent md:shadow-none' 
+              : 'border-slate-200 bg-white/70 text-slate-500 hover:text-slate-700 md:border-transparent md:bg-transparent'
           }`}
         >
           <Briefcase size={16} />
-          <span>行李智能全托管 ({currentOrder.baggage ? '已开启' : '无行李'})</span>
+          <span>行李全托管</span>
         </button>
         <button
           onClick={() => setActiveTab('itinerary')}
-          className={`flex-1 py-3 font-bold text-sm text-center border-b-2 transition-all flex items-center justify-center gap-1.5 ${
+          className={`min-w-[165px] flex-1 rounded-2xl border px-3 py-3 font-bold text-xs text-center transition-all flex items-center justify-center gap-1.5 md:min-w-0 md:rounded-none md:border-x-0 md:border-t-0 md:border-b-2 md:text-sm ${
             activeTab === 'itinerary' 
-              ? 'border-primary text-primary' 
-              : 'border-transparent text-slate-500 hover:text-slate-700'
+              ? 'border-primary bg-white text-primary shadow-sm md:bg-transparent md:shadow-none' 
+              : 'border-slate-200 bg-white/70 text-slate-500 hover:text-slate-700 md:border-transparent md:bg-transparent'
           }`}
         >
           <Compass size={16} />
@@ -167,10 +156,10 @@ function JourneyContent() {
         </button>
         <button
           onClick={() => setActiveTab('addons')}
-          className={`flex-1 py-3 font-bold text-sm text-center border-b-2 transition-all flex items-center justify-center gap-1.5 ${
+          className={`min-w-[165px] flex-1 rounded-2xl border px-3 py-3 font-bold text-xs text-center transition-all flex items-center justify-center gap-1.5 md:min-w-0 md:rounded-none md:border-x-0 md:border-t-0 md:border-b-2 md:text-sm ${
             activeTab === 'addons' 
-              ? 'border-primary text-primary' 
-              : 'border-transparent text-slate-500 hover:text-slate-700'
+              ? 'border-primary bg-white text-primary shadow-sm md:bg-transparent md:shadow-none' 
+              : 'border-slate-200 bg-white/70 text-slate-500 hover:text-slate-700 md:border-transparent md:bg-transparent'
           }`}
         >
           <Wifi size={16} />
@@ -183,7 +172,7 @@ function JourneyContent() {
         <div className="flex flex-col gap-6">
           {/* Main Baggage State Card */}
           {currentOrder.baggage ? (
-            <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm flex flex-col md:flex-row gap-6 items-center">
+            <div className="bg-white rounded-3xl p-4 border border-slate-100 shadow-sm flex flex-col gap-4 items-center sm:p-6 md:flex-row md:gap-6">
               {/* Photo Mock */}
               <div 
                 className="w-full md:w-48 h-36 bg-cover bg-center rounded-2xl border border-slate-200 flex-shrink-0 relative overflow-hidden"
@@ -197,12 +186,12 @@ function JourneyContent() {
               <div className="flex-1 w-full space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">当前行李托管状态</span>
-                  <span className="text-[10px] bg-primary/10 text-primary border border-primary/20 px-2.5 py-0.5 rounded-full font-bold">
+                  <span className="shrink-0 text-[10px] bg-primary/10 text-primary border border-primary/20 px-2.5 py-0.5 rounded-full font-bold">
                     RFID 安全保障中
                   </span>
                 </div>
                 
-                <h3 className="font-extrabold text-xl text-slate-800">
+                <h3 className="font-extrabold text-lg text-slate-800 md:text-xl">
                   {currentOrder.baggage.currentLocation}
                 </h3>
                 
@@ -213,7 +202,7 @@ function JourneyContent() {
                 <div className="flex items-center gap-4 text-xs font-semibold text-slate-500 pt-1">
                   <div>
                     <span className="text-[10px] text-slate-400 font-bold block">托运件数:</span>
-                    <span className="text-slate-800">1件手提登机箱</span>
+                    <span className="text-slate-800">{currentOrder.baggage.pieceCount ?? 1} 件行李</span>
                   </div>
                   <div className="w-[1px] h-6 bg-slate-100" />
                   <div>
@@ -231,8 +220,8 @@ function JourneyContent() {
 
           {/* Timeline */}
           {currentOrder.baggage && (
-            <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm">
-              <h4 className="font-bold text-xs text-slate-400 uppercase tracking-wider mb-6">RFID 全程转运生命周期</h4>
+            <div className="bg-white rounded-3xl p-4 border border-slate-100 shadow-sm sm:p-6">
+              <h4 className="font-bold text-xs text-slate-400 uppercase tracking-wider mb-5 md:mb-6">RFID 全程转运生命周期</h4>
               
               <div className="relative pl-6 space-y-8 before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-[2px] before:bg-slate-100">
                 {baggageSteps.map((step, idx) => {
@@ -292,8 +281,8 @@ function JourneyContent() {
       {activeTab === 'itinerary' && (
         <div className="flex flex-col gap-6">
           {/* Package brief */}
-          <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm flex items-center gap-4">
-            <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+          <div className="bg-white rounded-3xl p-4 border border-slate-100 shadow-sm flex items-start gap-3 sm:p-6 sm:items-center sm:gap-4">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
               <Clock size={20} />
             </div>
             <div>
@@ -306,19 +295,19 @@ function JourneyContent() {
 
           {/* Micro package city tour timetable */}
           {currentOrder.package.sku === 'micro' && tourDetail && (
-            <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm flex flex-col gap-6">
+            <div className="bg-white rounded-3xl p-4 border border-slate-100 shadow-sm flex flex-col gap-5 sm:p-6 md:gap-6">
               <div className="border-b border-slate-100 pb-4">
                 <span className="text-[9px] bg-accent/15 text-accent border border-accent/20 px-2 py-0.5 rounded font-bold">
                   标准化城市微游路线已指派
                 </span>
-                <h3 className="font-extrabold text-lg text-slate-900 mt-2">
+                <h3 className="font-extrabold text-base text-slate-900 mt-2 md:text-lg">
                   {tourDetail.name}
                 </h3>
                 <p className="text-xs text-slate-500 mt-1">{tourDetail.description}</p>
               </div>
 
               {/* Guide & Car Details */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-sand/30 p-4 rounded-2xl border border-slate-100">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-sand/30 p-3 rounded-2xl border border-slate-100 sm:p-4">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-slate-200 overflow-hidden flex items-center justify-center font-bold text-slate-500">
                     陈
@@ -353,7 +342,7 @@ function JourneyContent() {
                 <h4 className="font-bold text-xs text-slate-400 uppercase tracking-wider mb-4">微游时间单细则 (向导严格把控)</h4>
                 <div className="space-y-4">
                   {tourDetail.schedule.map((item, index) => (
-                    <div key={index} className="flex gap-4 items-start text-xs">
+                    <div key={index} className="flex gap-3 items-start text-xs sm:gap-4">
                       <span className="font-mono font-bold text-primary bg-blue-50/50 px-2 py-0.5 rounded border border-blue-100 flex-shrink-0">
                         {item.time}
                       </span>
@@ -367,18 +356,18 @@ function JourneyContent() {
 
           {/* Overnight package hotel voucher */}
           {currentOrder.package.sku === 'overnight' && currentOrder.hotel && (
-            <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm flex flex-col gap-5">
+            <div className="bg-white rounded-3xl p-4 border border-slate-100 shadow-sm flex flex-col gap-5 sm:p-6">
               <div className="border-b border-slate-100 pb-4">
                 <span className="text-[9px] bg-primary/10 text-primary border border-primary/20 px-2 py-0.5 rounded font-bold">
                   过夜包星级合作酒店钟点房已开通
                 </span>
-                <h3 className="font-extrabold text-lg text-slate-900 mt-2">
+                <h3 className="font-extrabold text-base text-slate-900 mt-2 md:text-lg">
                   {currentOrder.hotel.hotelName}
                 </h3>
                 <p className="text-xs text-slate-500 mt-1">机场内部或航站楼直连尊享，无需出航站楼即可快速入住。</p>
               </div>
 
-              <div className="grid grid-cols-3 gap-4 text-center">
+              <div className="grid grid-cols-1 gap-3 text-center sm:grid-cols-3 sm:gap-4">
                 <div className="bg-sand/30 p-3 rounded-xl border border-slate-100">
                   <span className="text-[9px] text-slate-400 block">房间号</span>
                   <span className="text-base font-extrabold text-slate-800">{currentOrder.hotel.roomNo}</span>
@@ -401,7 +390,7 @@ function JourneyContent() {
 
           {/* Light package Lounge brief */}
           {currentOrder.package.sku === 'light' && (
-            <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm flex flex-col gap-4">
+            <div className="bg-white rounded-3xl p-4 border border-slate-100 shadow-sm flex flex-col gap-4 sm:p-6">
               <div className="border-b border-slate-100 pb-3">
                 <h3 className="font-bold text-slate-800 text-base">机场贵宾休息室准入指南</h3>
                 <p className="text-[11px] text-slate-400 mt-0.5">免出关，安检内极致补给体验</p>
@@ -434,7 +423,7 @@ function JourneyContent() {
         <div className="flex flex-col gap-6">
           {/* eSIM Voucher */}
           {currentOrder.addons.includes('esim') && (
-            <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm flex flex-col md:flex-row gap-6 items-center">
+            <div className="bg-white rounded-3xl p-4 border border-slate-100 shadow-sm flex flex-col gap-4 items-center sm:p-6 md:flex-row md:gap-6">
               {/* QR */}
               <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100 flex items-center justify-center flex-shrink-0">
                 <div className="w-28 h-28 bg-slate-300 flex items-center justify-center font-bold text-xs text-slate-500 rounded-lg">
@@ -442,7 +431,7 @@ function JourneyContent() {
                 </div>
               </div>
               
-              <div className="flex-grow space-y-2 text-xs">
+              <div className="flex-grow space-y-2 text-xs text-center md:text-left">
                 <span className="text-[9px] bg-primary/10 text-primary border border-primary/20 px-2.5 py-0.5 rounded font-bold">
                   中转地 eSIM 激活卡
                 </span>
@@ -450,7 +439,7 @@ function JourneyContent() {
                 <p className="text-slate-500 text-[11px] leading-relaxed">
                   请在飞机落地中转前，使用手机摄像头扫描左侧二维码即可将 eSIM 流量卡安装至蜂窝设置中。APN 将自动选择，无需换卡。
                 </p>
-                <div className="font-mono bg-slate-100 px-3 py-1.5 rounded text-[10px] text-slate-600 select-all inline-block font-semibold">
+                <div className="max-w-full break-all font-mono bg-slate-100 px-3 py-1.5 rounded text-[10px] text-slate-600 select-all inline-block font-semibold">
                   激活码：SMDP.IO$OVERSEASE-8899
                 </div>
               </div>
@@ -459,7 +448,7 @@ function JourneyContent() {
 
           {/* Meal Voucher */}
           {currentOrder.addons.includes('meal-voucher') && (
-            <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm flex flex-col md:flex-row gap-6 items-center">
+            <div className="bg-white rounded-3xl p-4 border border-slate-100 shadow-sm flex flex-col gap-4 items-center sm:p-6 md:flex-row md:gap-6">
               {/* Barcode */}
               <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100 flex flex-col items-center justify-center flex-shrink-0 w-full md:w-48">
                 <div className="h-12 bg-slate-800 w-full rounded flex items-center justify-center text-white font-mono text-[10px] tracking-[4px]">
@@ -468,7 +457,7 @@ function JourneyContent() {
                 <span className="text-[9px] text-slate-400 font-mono mt-1">9877-6544-2101</span>
               </div>
               
-              <div className="flex-grow space-y-2 text-xs">
+              <div className="flex-grow space-y-2 text-xs text-center md:text-left">
                 <span className="text-[9px] bg-accent/15 text-accent border border-accent/20 px-2 py-0.5 rounded font-bold">
                   机场地标美食核销餐饮券 (¥100面值)
                 </span>
@@ -482,7 +471,7 @@ function JourneyContent() {
 
           {/* Transfer */}
           {currentOrder.addons.includes('transfer') && (
-            <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm flex gap-4 items-center">
+            <div className="bg-white rounded-3xl p-4 border border-slate-100 shadow-sm flex gap-3 items-start sm:p-6 sm:gap-4 sm:items-center">
               <div className="w-10 h-10 rounded-xl bg-blue-50 text-primary flex items-center justify-center flex-shrink-0">
                 <Car size={20} />
               </div>

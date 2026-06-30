@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useOrderStore } from '@/lib/store/orderStore';
 import { getAvailableTriggers, orderTransitions } from '@/lib/state-machine/orderState';
 import { OrderStatus } from '@/lib/types';
@@ -17,8 +17,21 @@ export default function DemoController() {
     currentOrder, transitionOrder, resetStore, demoLogs
   } = useOrderStore();
   
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(() => {
+    if (typeof window === 'undefined') return true;
+    return !window.matchMedia('(max-width: 767px)').matches;
+  });
   const [showHelp, setShowHelp] = useState(false);
+
+  useEffect(() => {
+    const mobileQuery = window.matchMedia('(max-width: 767px)');
+    const handleViewportChange = (event: MediaQueryListEvent) => {
+      setIsOpen(!event.matches);
+    };
+
+    mobileQuery.addEventListener('change', handleViewportChange);
+    return () => mobileQuery.removeEventListener('change', handleViewportChange);
+  }, []);
 
   if (pathname === '/' || pathname === '/pitch') {
     return null;
@@ -26,7 +39,7 @@ export default function DemoController() {
 
   if (!currentOrder) {
     return (
-      <div className="fixed bottom-6 right-6 z-50 max-w-sm glass-card rounded-2xl p-4 shadow-xl border border-white/40">
+      <div className="fixed inset-x-3 bottom-3 z-50 glass-card rounded-2xl p-4 shadow-xl border border-white/40 md:inset-x-auto md:bottom-6 md:right-6 md:max-w-sm">
         <div className="flex items-center gap-2 text-primary font-bold mb-1">
           <Activity size={18} className="animate-pulse" />
           <span>中转游 Demo 演示控制台</span>
@@ -99,17 +112,27 @@ export default function DemoController() {
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 w-[360px] glass-card rounded-2xl shadow-2xl border border-white/50 overflow-hidden flex flex-col transition-all duration-300">
+    <div
+      className={`fixed z-50 glass-card shadow-2xl border border-white/50 overflow-hidden flex flex-col transition-all duration-300 md:bottom-6 md:right-6 md:w-[360px] ${
+        isOpen
+          ? 'inset-x-3 bottom-3 rounded-2xl md:inset-x-auto'
+          : 'right-3 top-16 h-12 w-12 rounded-full md:top-auto md:h-auto md:rounded-2xl'
+      }`}
+    >
       {/* Header */}
       <div 
-        className="px-4 py-3 bg-gradient-to-r from-primary to-primary/90 text-white flex items-center justify-between cursor-pointer"
+        className={`bg-gradient-to-r from-primary to-primary/90 text-white flex items-center cursor-pointer ${
+          isOpen
+            ? 'justify-between px-4 py-3'
+            : 'h-12 justify-center px-0 md:h-auto md:justify-between md:px-4 md:py-3'
+        }`}
         onClick={() => setIsOpen(!isOpen)}
       >
         <div className="flex items-center gap-2 font-bold text-sm">
           <Activity size={16} className={currentOrder.status === 'completed' ? '' : 'animate-pulse'} />
-          <span>演示控制台 (Demo Mode)</span>
+          <span className={isOpen ? '' : 'hidden md:inline'}>演示控制台 (Demo Mode)</span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className={isOpen ? 'flex items-center gap-2' : 'hidden items-center gap-2 md:flex'}>
           <button 
             onClick={(e) => {
               e.stopPropagation();
@@ -125,7 +148,7 @@ export default function DemoController() {
       </div>
 
       {isOpen && (
-        <div className="p-4 flex flex-col gap-3 max-h-[480px] overflow-y-auto">
+        <div className="p-4 flex flex-col gap-3 max-h-[68vh] overflow-y-auto md:max-h-[480px]">
           {/* Help Panel */}
           {showHelp && (
             <div className="bg-blue-50/90 text-slate-700 text-xs p-3 rounded-xl border border-blue-200 leading-relaxed mb-1">
@@ -147,7 +170,7 @@ export default function DemoController() {
           </div>
 
           {/* Status steps indicator */}
-          <div className="flex justify-between items-center my-1 px-1">
+          <div className="flex justify-between items-center my-1 overflow-x-auto px-1 pb-1">
             {orderSteps.map((step, idx) => {
               const state = getStepState(step.status);
               return (
