@@ -50,7 +50,7 @@ function OrderDetailContent() {
   return (
     <div className="flex-1 w-full max-w-7xl mx-auto px-4 py-5 pb-24 sm:px-6 sm:py-8 md:pb-8 flex flex-col gap-2">
       {/* Step Indicator */}
-      <div className="flex items-center gap-3 mb-5 justify-center md:mb-6 md:justify-start">
+      <div className="mb-5 hidden items-center gap-3 justify-center md:mb-6 md:flex md:justify-start">
         <span className="text-xs bg-primary text-white px-2 py-0.5 rounded font-bold uppercase tracking-wider">Step 4 of 5</span>
         <span className="text-slate-400 text-xs">生成出行电子凭证</span>
       </div>

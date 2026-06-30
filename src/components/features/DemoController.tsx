@@ -39,7 +39,7 @@ export default function DemoController() {
 
   if (!currentOrder) {
     return (
-      <div className="fixed inset-x-3 bottom-3 z-50 glass-card rounded-2xl p-4 shadow-xl border border-white/40 md:inset-x-auto md:bottom-6 md:right-6 md:max-w-sm">
+      <div className="fixed inset-x-3 bottom-3 z-50 hidden glass-card rounded-2xl p-4 shadow-xl border border-white/40 md:inset-x-auto md:bottom-6 md:right-6 md:block md:max-w-sm">
         <div className="flex items-center gap-2 text-primary font-bold mb-1">
           <Activity size={18} className="animate-pulse" />
           <span>中转游 Demo 演示控制台</span>
@@ -113,7 +113,7 @@ export default function DemoController() {
 
   return (
     <div
-      className={`fixed z-50 glass-card shadow-2xl border border-white/50 overflow-hidden flex flex-col transition-all duration-300 md:bottom-6 md:right-6 md:w-[360px] ${
+      className={`fixed z-50 hidden glass-card shadow-2xl border border-white/50 overflow-hidden flex-col transition-all duration-300 md:flex md:bottom-6 md:right-6 md:w-[360px] ${
         isOpen
           ? 'inset-x-3 bottom-3 rounded-2xl md:inset-x-auto'
           : 'right-3 top-16 h-12 w-12 rounded-full md:top-auto md:h-auto md:rounded-2xl'

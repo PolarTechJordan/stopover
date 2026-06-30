@@ -79,7 +79,7 @@ export default function PackagesPage() {
   return (
     <div className="flex-1 py-8 px-6 max-w-7xl mx-auto w-full flex flex-col gap-6">
       {/* Step Indicator */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="mb-8 hidden items-center justify-between md:flex">
         <Link href="/search" className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-primary font-semibold transition-colors">
           <ArrowLeft size={14} />
           <span>返回修改航班</span>

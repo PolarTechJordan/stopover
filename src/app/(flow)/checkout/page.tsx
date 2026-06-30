@@ -92,7 +92,7 @@ export default function CheckoutPage() {
       )}
 
       {/* Step Indicator */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="mb-8 hidden items-center justify-between md:flex">
         <Link href="/packages" className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-primary font-semibold transition-colors">
           <ArrowLeft size={14} />
           <span>返回修改定制套餐</span>

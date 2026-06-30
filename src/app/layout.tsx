@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import DemoController from "@/components/features/DemoController";
+import MobileAppHeader from "@/components/features/MobileAppHeader";
 import Link from 'next/link';
 
 const geistSans = Geist({
@@ -27,8 +28,10 @@ export default function RootLayout({
   return (
     <html lang="zh-CN" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
       <body className="min-h-full bg-sand text-slate-900 flex flex-col font-sans selection:bg-primary/20">
+        <MobileAppHeader />
+
         {/* Navigation */}
-        <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-200/60 px-4 py-3 sm:px-6 sm:py-4 flex items-center justify-between">
+        <header className="sticky top-0 z-40 hidden bg-white/80 backdrop-blur-md border-b border-slate-200/60 px-4 py-3 sm:px-6 sm:py-4 md:flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Link href="/" className="flex items-center gap-2 group">
               <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white font-extrabold text-lg shadow-md group-hover:scale-105 transition-transform duration-200">
