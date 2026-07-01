@@ -123,8 +123,8 @@ export default function MobileConciergeAgent() {
       id: 'mobile-welcome',
       role: 'assistant',
       content: isChinese
-        ? '我是龙腾中转礼遇助手。告诉我机场、停留时长和行李，我会用自然语言对话和卡片带你完成套餐、行李托管、下单与返场保障。'
-        : 'I am DragonPass Stopover Concierge. Tell me your airport, layover time and baggage, and I will guide package, baggage custody, order and return assurance through conversation plus cards.',
+        ? '我是龙腾中转礼遇助手。告诉我机场、停留时长和行李，我会给出套餐、托管、下单和返场保障建议。'
+        : 'I am DragonPass Stopover Concierge. Tell me your airport, layover time and bags, and I will guide package, custody, order and return assurance.',
       source: 'system',
     },
   ]);
@@ -219,7 +219,7 @@ export default function MobileConciergeAgent() {
         icon: Navigation,
         label: isChinese ? '返场送回' : 'Return flow',
         detail: isChinese ? '起飞前 90 分钟' : '90min before departure',
-        className: 'border-slate-200 bg-slate-50 text-[#334155]',
+        className: 'border-[#d8e2ef] bg-[#eef4fb] text-[#5d6f86]',
       },
       {
         id: 'protect',
@@ -685,21 +685,26 @@ export default function MobileConciergeAgent() {
               </div>
             </div>
 
-            <div className="space-y-2.5">
+            <div className="space-y-2">
               {messages.map((message) => {
                 const isUser = message.role === 'user';
                 return (
-                  <div key={message.id} className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
+                  <div key={message.id} className={`flex ${isUser ? 'justify-end' : 'items-start justify-start gap-1.5'}`}>
+                    {!isUser ? (
+                      <span className="mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-[#bfd1e8] bg-[#eef6ff] text-[#0b5fff] shadow-sm">
+                        <Bot size={13} />
+                      </span>
+                    ) : null}
                     <div
-                      className={`max-w-[84%] rounded-2xl px-3 py-2 text-[12px] font-medium leading-5 ${
+                      className={`max-w-[82%] px-2.5 py-2 text-[12px] font-medium leading-5 shadow-sm ${
                         isUser
-                          ? 'rounded-br-md bg-[#0b5fff] text-white'
-                          : 'rounded-bl-md border border-[#d7e1ec] bg-[#ffffff] text-[#17223a]'
+                          ? 'rounded-2xl rounded-br-md bg-[#0b5fff] text-white'
+                          : 'rounded-[14px] rounded-tl-md border border-[#c9d8ea] bg-gradient-to-br from-[#f7fbff] to-[#eef5ff] text-[#17223a]'
                       }`}
                     >
                       {message.content}
                       {!isUser && message.source ? (
-                        <div className="mt-1 text-[10px] font-black text-[#8a98ab]">
+                        <div className="mt-1 text-[9px] font-black text-[#7b8ca3]">
                           {sourceLabel(message.source, isChinese)}
                         </div>
                       ) : null}
@@ -708,8 +713,11 @@ export default function MobileConciergeAgent() {
                 );
               })}
               {isAsking && (
-                <div className="flex justify-start">
-                  <div className="rounded-2xl rounded-bl-md border border-[#d7e1ec] bg-[#ffffff] px-3 py-2 text-[12px] font-black leading-5 text-[#52627a]">
+                <div className="flex items-start justify-start gap-1.5">
+                  <span className="mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-[#bfd1e8] bg-[#eef6ff] text-[#0b5fff] shadow-sm">
+                    <Bot size={13} />
+                  </span>
+                  <div className="rounded-[14px] rounded-tl-md border border-[#c9d8ea] bg-gradient-to-br from-[#f7fbff] to-[#eef5ff] px-2.5 py-2 text-[12px] font-black leading-5 text-[#52627a] shadow-sm">
                     {isChinese ? '中转礼遇助手正在核算方案...' : 'DragonPass Concierge is calculating...'}
                   </div>
                 </div>
