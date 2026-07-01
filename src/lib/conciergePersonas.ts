@@ -50,7 +50,7 @@ export const conciergePersonas: ConciergePersonaTemplate[] = [
     context: '用户对价格不敏感，关心确定性、行李安全和路线是否足够经典。',
     painPoints: ['怕拖箱出门不方便', '不了解新加坡路线和返程时间', '担心城市交通导致误机'],
     productFit: ['微游包', '行李 RFID 全托管', '樟宜地标经典 4 小时微游', 'VIP 快速安检与误机保障'],
-    defaultAddons: ['esim', 'ai-group-meal'],
+    defaultAddons: ['esim'],
     demoQuestions: ['我偏 E 人高能量，推荐吃什么？', '行李在哪儿取？', '能不能加一个 eSIM？'],
     entitlementHighlights: [
       { label: '推荐套餐', value: '微游包 ¥780 起' },
@@ -85,7 +85,7 @@ export const conciergePersonas: ConciergePersonaTemplate[] = [
     context: '家庭用户对儿童休息、酒店钟点房、行李送房和接送确定性更敏感，纯观光优先级低。',
     painPoints: ['孩子精力有限', '行李多，不想反复搬运', '不熟悉机场酒店和接送流程'],
     productFit: ['过夜包', '合作机场酒店/钟点房', '行李直送酒店', '机场餐饮券和专车接送'],
-    defaultAddons: ['hotel-dayuse', 'ai-group-meal'],
+    defaultAddons: ['hotel-dayuse'],
     demoQuestions: ['孩子累了能不能直接去酒店？', '低能量家庭餐怎么安排？', '第二天几点要回机场？'],
     entitlementHighlights: [
       { label: '推荐套餐', value: '过夜包 ¥980 起' },
@@ -120,7 +120,7 @@ export const conciergePersonas: ConciergePersonaTemplate[] = [
     context: '用户不需要城市游，礼宾要主动拦截风险，推荐机场内轻享权益。',
     painPoints: ['睡眠不足', '凌晨服务少', '担心出机场来不及'],
     productFit: ['轻享包', '贵宾厅 3 小时', '淋浴升级', '快速安检'],
-    defaultAddons: ['shower', 'ai-group-meal'],
+    defaultAddons: ['shower'],
     demoQuestions: ['为什么不建议出机场？', '凌晨低能量适合什么餐？', '贵宾厅能洗澡吗？'],
     entitlementHighlights: [
       { label: '推荐套餐', value: '轻享包 ¥280 起' },
@@ -189,8 +189,8 @@ export const conciergePersonas: ConciergePersonaTemplate[] = [
     scenarioPrompt: '我在伊斯坦布尔中转 8 个半小时，想去蓝色清真寺看看，但不确定签证能不能入境。',
     context: 'PRD 明确第一版不做签证服务，只纳入免签/落地签中转地；礼宾要解释边界并给机场内替代方案。',
     painPoints: ['签证资格不确定', '中转时间不长', '用户想出机场但风险高'],
-    productFit: ['轻享包', '机场内休息权益', 'AI 团餐匹配', '人工签证核验提示'],
-    defaultAddons: ['ai-group-meal', 'shower'],
+    productFit: ['轻享包', '机场内休息权益', '机场餐饮消费券', '人工签证核验提示'],
+    defaultAddons: ['shower'],
     demoQuestions: ['为什么不能直接卖城市游？', '如果我确认有签证呢？', '机场内有什么替代权益？'],
     entitlementHighlights: [
       { label: '推荐动作', value: '先核验签证' },

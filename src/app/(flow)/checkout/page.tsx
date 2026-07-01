@@ -33,7 +33,7 @@ export default function CheckoutPage() {
 
   const currentAirport = localizeAirport(airports.find(a => a.code === searchParams.airportCode)!, language);
   const activePackage = localizePackage(packages.find(p => p.sku === selectedPackageSku)!, language);
-  const hasAiMeal = selectedAddonSkus.includes('ai-group-meal') && activePackage.addons.includes('ai-group-meal');
+
 
   // Calculate final total
   const calculateTotal = () => {
@@ -189,35 +189,7 @@ export default function CheckoutPage() {
             </div>
           </div>
 
-          {hasAiMeal && (
-            <div className="liquid-glass-dark rounded-3xl p-6 text-white shadow-2xl">
-              <div className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.16em] text-cyan-100">
-                <Sparkles size={15} />
-                <span>{language === 'zh-CN' ? '龙腾出行 MealPulse 已锁定' : 'Meal add-on locked'}</span>
-              </div>
-              <h3 className="mt-3 text-xl font-black">{language === 'zh-CN' ? 'AI 团餐将随票一起履约' : 'Meal matching will be fulfilled with this voucher'}</h3>
-              <p className="mt-2 text-xs font-semibold leading-6 text-slate-300">
-                {language === 'zh-CN'
-                  ? '系统会基于停留时段、E/I 偏好和能量状态，在电子凭证中生成餐位、会合点、核销码和返场提醒。'
-                  : 'The voucher includes meal slot, meeting point, redemption code and return reminders.'}
-              </p>
-              <div className="mt-4 grid grid-cols-3 gap-2 text-center text-[10px] font-black text-slate-200">
-                {[
-                  { label: '餐位锁定', icon: ChefHat },
-                  { label: '返场校验', icon: ShieldCheck },
-                  { label: '同单核销', icon: CreditCard },
-                ].map((item) => {
-                  const Icon = item.icon;
-                  return (
-                    <div key={item.label} className="rounded-2xl bg-white/8 px-2 py-3">
-                      <Icon size={15} className="mx-auto mb-1 text-orange-200" />
-                      {item.label}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
+
         </div>
 
         {/* Right col: Checkout details & Action */}

@@ -57,7 +57,7 @@ export const packages: Package[] = [
       '贵宾厅内洗漱淋浴与高速 Wi-Fi'
     ],
     recommendedLayover: { minHours: 6, maxHours: 8 },
-    addons: ['esim', 'ai-group-meal', 'meal-voucher', 'shower'],
+    addons: ['esim', 'meal-voucher', 'shower'],
   },
   {
     sku: 'micro',
@@ -74,7 +74,7 @@ export const packages: Package[] = [
       '中转延误/误机全面安心保障与改签协助'
     ],
     recommendedLayover: { minHours: 10, maxHours: 18 },
-    addons: ['esim', 'transfer', 'ai-group-meal', 'meal-voucher'],
+    addons: ['esim', 'transfer', 'meal-voucher'],
   },
   {
     sku: 'overnight',
@@ -90,7 +90,7 @@ export const packages: Package[] = [
       '中转延误/误机全面安心保障与改签协助'
     ],
     recommendedLayover: { minHours: 12, maxHours: 36 },
-    addons: ['esim', 'transfer', 'hotel-dayuse', 'ai-group-meal', 'private-car', 'meal-voucher'],
+    addons: ['esim', 'transfer', 'hotel-dayuse', 'private-car', 'meal-voucher'],
   },
 ];
 
@@ -122,13 +122,6 @@ export const addons: Addon[] = [
     price: 60,
     description: '非贵宾厅用户亦可凭券前往机场指定淋浴中心，享 30 分钟舒适淋浴及全套高档备品。',
     iconName: 'ShowerHead',
-  },
-  {
-    sku: 'ai-group-meal',
-    name: '龙腾 AI 停留团餐匹配',
-    price: 168,
-    description: '随票智能匹配停留时段、E/I 偏好与能量水平，生成可拼团或低打扰的机场/城市团餐方案，含餐位锁定与返场时间校验。',
-    iconName: 'Sparkles',
   },
   {
     sku: 'meal-voucher',
@@ -253,7 +246,7 @@ export interface MockFlightCase {
 export const mockFlightCases: MockFlightCase[] = [
   {
     id: 'case-4h',
-    label: '4小时不可订购边界样例 (新加坡樟宜)',
+    label: '4小时机场室内游 (新加坡樟宜)',
     airportCode: 'SIN',
     arrivalFlightNo: 'SQ801',
     arrivalAirline: '新加坡航空',
@@ -263,7 +256,7 @@ export const mockFlightCases: MockFlightCase[] = [
     departureTimeStr: '2026-07-01 13:00',
     calculatedLayover: 4,
     periodDesc: '低于MVP最低时长',
-    description: '4小时超短中转低于 PRD 6 小时起订线，用于演示不可订购边界和机场内替代建议。'
+    description: '4小时超短中转低于 PRD 6 小时起订线，用于演示机场室内游和机场内替代建议。'
   },
   {
     id: 'case-10h',
@@ -277,7 +270,7 @@ export const mockFlightCases: MockFlightCase[] = [
     departureTimeStr: '2026-07-01 18:30',
     calculatedLayover: 10,
     periodDesc: '上午到达 / 傍晚离境',
-    description: '10小时白天中转（推荐微游包，手动预留8小时进行市区经典微游）'
+    description: '10小时白天中转（推荐微游包，手动预留7小时进行市区经典微游）'
   },
   {
     id: 'case-23h',

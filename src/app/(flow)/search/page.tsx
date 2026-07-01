@@ -29,14 +29,14 @@ const airlineLabels: Record<string, string> = {
 
 const flightCaseEnglishCopy: Record<string, { label: string; period: string; description: string }> = {
   'case-4h': {
-    label: '4h non-bookable boundary sample (Singapore)',
+    label: '4h Airport Indoor Tour (Singapore)',
     period: 'Below MVP minimum',
-    description: 'Ultra-short 4h layover is below the PRD 6h booking floor. Use this case to demo the non-bookable boundary and airport-only alternatives.',
+    description: 'Ultra-short 4h layover is below the PRD 6h booking floor. Use this case to demo the airport indoor tour and airport-only alternatives.',
   },
   'case-10h': {
     label: '10h daytime layover (Singapore - classic micro-tour)',
     period: 'Morning arrival',
-    description: '10h daytime layover. Recommended fit: City Micro-Tour, with an 8h reserved service window for a classic city route.',
+    description: '10h daytime layover. Recommended fit: City Micro-Tour, with a 7h reserved service window for a classic city route.',
   },
   'case-23h': {
     label: '23h overnight layover (Singapore - family rest)',
@@ -116,8 +116,13 @@ export default function SearchPage() {
 
   const currentAirportInfo = localizeAirport(airports.find(a => a.code === selectedAirport)!, language);
   const maxReservedHours = getMaxReservedServiceHours(calculatedTotalHours);
-  const safeReservedHours = Math.min(reservedHours, maxReservedHours);
-  const boardingBufferHours = getBoardingBufferHours(calculatedTotalHours, safeReservedHours);
+  let safeReservedHours = Math.min(reservedHours, maxReservedHours);
+  let boardingBufferHours = getBoardingBufferHours(calculatedTotalHours, safeReservedHours);
+
+  if (calculatedTotalHours === 4) {
+    safeReservedHours = 1.5;
+    boardingBufferHours = 1.0;
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -343,7 +348,7 @@ export default function SearchPage() {
                 <span className="text-slate-700">{t(language, 'search.totalLayover')}: <strong className="text-primary">{formatHours(calculatedTotalHours, language)}</strong></span>
               </div>
               
-              {calculatedTotalHours < STOP_OVER_PRD.productRange.minHours ? (
+              {calculatedTotalHours < STOP_OVER_PRD.productRange.minHours && calculatedTotalHours !== 4 ? (
                 /* Warning state */
                 <div className="h-10 rounded-xl bg-slate-100 flex items-center justify-center border border-slate-200 text-xs text-rose-500 font-bold gap-2">
                   <AlertTriangle size={14} />
@@ -365,9 +370,15 @@ export default function SearchPage() {
                     <div 
                       className="bg-gradient-to-r from-primary to-blue-500 flex items-center justify-center animate-pulse-glow transition-all"
                       style={{ width: `${(safeReservedHours / calculatedTotalHours) * 100}%` }}
-                      title={`${t(language, 'search.serviceWindow')}: ${formatHours(safeReservedHours, language)}`}
+                      title={calculatedTotalHours === 4
+                        ? (language === 'zh-CN' ? '机场休息室+机场室内购物路线: 1.5小时' : 'Airport Lounge & Indoor Shopping: 1.5h')
+                        : `${t(language, 'search.serviceWindow')}: ${formatHours(safeReservedHours, language)}`}
                     >
-                      <span className="truncate px-1">{t(language, 'search.serviceWindow')} {safeReservedHours}h</span>
+                      <span className="truncate px-1">
+                        {calculatedTotalHours === 4
+                          ? (language === 'zh-CN' ? '机场休息室+机场室内购物路线' : 'Lounge & Indoor Shopping')
+                          : `${t(language, 'search.serviceWindow')} ${safeReservedHours}h`}
+                      </span>
                     </div>
                     {/* Boarding Buffer */}
                     <div 

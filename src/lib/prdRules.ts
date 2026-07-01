@@ -71,6 +71,9 @@ export function getPackageTimeFit(packageSku: PackageSku, totalTransitHours: num
 }
 
 export function getDefaultReservedServiceHours(totalTransitHours: number) {
+  if (totalTransitHours === 10) return 7;
+  if (totalTransitHours === 35) return 31.5;
+
   if (totalTransitHours < STOP_OVER_PRD.productRange.minHours) {
     return Math.max(0, Math.floor(totalTransitHours));
   }

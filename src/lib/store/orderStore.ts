@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { StopoverOrder, AirportCode, PackageSku, AddonSku, Flight, BaggageStatus, BaggageTracking } from '../types';
-import { packages, airports, addons, tourRoutes } from '../mockData';
+import { packages, airports, addons, tourRoutes, mockFlightCases } from '../mockData';
 import { getNextStatus } from '../state-machine/orderState';
 import dayjs from 'dayjs';
 
@@ -365,3 +365,102 @@ export const useOrderStore = create<OrderState>()(
     }
   )
 );
+
+export function getMockOrderForCaseId(caseId: string): StopoverOrder | null {
+  const caseItem = mockFlightCases.find(c => c.id === caseId);
+  if (!caseItem) return null;
+
+  let sku: PackageSku = 'light';
+  if (caseId === 'case-10h') sku = 'micro';
+  else if (caseId === 'case-23h' || caseId === 'case-35h') sku = 'overnight';
+
+  const pkg = packages.find(p => p.sku === sku) ?? packages[0];
+  const airport = airports.find(a => a.code === caseItem.airportCode) ?? airports[0];
+
+  const arrivalFlight: Flight = {
+    flightNo: caseItem.arrivalFlightNo,
+    airline: caseItem.arrivalAirline,
+    from: 'PVG',
+    to: caseItem.airportCode,
+    arrivalTime: dayjs(caseItem.arrivalTimeStr).toISOString(),
+    departureTime: dayjs(caseItem.arrivalTimeStr).subtract(5, 'hour').toISOString(),
+    terminal: 'T3',
+  };
+
+  const departureFlight: Flight = {
+    flightNo: caseItem.departureFlightNo,
+    airline: caseItem.departureAirline,
+    from: caseItem.airportCode,
+    to: 'LHR',
+    arrivalTime: dayjs(caseItem.departureTimeStr).add(12, 'hour').toISOString(),
+    departureTime: dayjs(caseItem.departureTimeStr).toISOString(),
+    terminal: 'T1',
+  };
+
+  const orderId = caseId;
+  const rfidTag = 'RFID' + Math.floor(10000000 + Math.random() * 90000000);
+
+  const baggage: BaggageTracking = {
+    trackingId: 'BAG' + Math.floor(100000 + Math.random() * 900000),
+    orderId,
+    rfidTag,
+    pieceCount: 1,
+    pickupAt: dayjs(arrivalFlight.arrivalTime).toISOString(),
+    currentLocation: airport.nameZh + (sku === 'overnight' ? ' - 酒店送达' : ' - 贵宾厅托管'),
+    status: sku === 'overnight' ? 'at_hotel' : 'at_lounge',
+    photoUrl: 'https://images.unsplash.com/photo-1581553680321-4fffae59fccd?auto=format&fit=crop&q=80&w=600',
+    history: [
+      {
+        status: 'received',
+        timestamp: dayjs(arrivalFlight.arrivalTime).add(20, 'minute').format('HH:mm:ss'),
+        location: '中转柜台系统联通',
+        description: '系统已成功关联行李，并已于中转柜台交付收取。'
+      },
+      {
+        status: sku === 'overnight' ? 'at_hotel' : 'at_lounge',
+        timestamp: dayjs(arrivalFlight.arrivalTime).add(50, 'minute').format('HH:mm:ss'),
+        location: sku === 'overnight' ? '合作酒店前台' : 'T1 环亚贵宾厅寄存库',
+        description: sku === 'overnight' ? '行李已安全运抵合作酒店前台并配送至房间。' : '行李已妥善存放入贵宾厅托管库。'
+      }
+    ]
+  };
+
+  const selectedRoute = tourRoutes.find((route) => route.id === airport.cityTourRoutes[0]);
+  const cityTour = sku === 'micro' || caseId === 'case-35h' ? {
+    routeId: airport.cityTourRoutes[0],
+    routeName: selectedRoute?.name ?? `${airport.nameZh}经典 4 小时微游`,
+    departureTime: '09:00',
+    guideId: 'GUIDE88',
+    guideName: '陈向导 (John Chen)',
+    guidePhone: '+65 8812 3456',
+    vehicleId: 'VEH99',
+    vehicleNo: 'SBS 8888Y',
+    status: 'ongoing' as const
+  } : undefined;
+
+  const hotel = sku === 'overnight' ? {
+    hotelId: 'HOTEL101',
+    hotelName: airport.code === 'SIN' ? '新加坡樟宜机场皇冠假日酒店' : '多哈机场航站楼酒店',
+    roomNo: '8402',
+    checkIn: '14:00',
+    checkOut: '20:00'
+  } : undefined;
+
+  return {
+    orderId,
+    userId: 'USER_WEI',
+    arrivalFlight,
+    departureFlight,
+    layoverAirport: caseItem.airportCode,
+    layoverHours: caseItem.calculatedLayover,
+    totalTransitHours: caseItem.calculatedLayover,
+    package: pkg,
+    addons: sku === 'micro' ? ['esim'] : [],
+    totalAmount: pkg.price,
+    status: 'paid',
+    createdAt: new Date().toISOString(),
+    baggage,
+    cityTour,
+    hotel
+  };
+}

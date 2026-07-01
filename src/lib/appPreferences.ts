@@ -587,16 +587,7 @@ const addonTranslations: Record<AddonSku, Record<LanguageCode, Pick<Addon, 'name
       description: 'Redeem a 30-minute airport shower session with premium amenities at a partner facility.',
     },
   },
-  'ai-group-meal': {
-    'zh-CN': {
-      name: '龙腾 AI 停留团餐匹配',
-      description: '随票智能匹配停留时段、E/I 偏好与能量水平，生成可拼团或低打扰的机场/城市团餐方案，含餐位锁定与返场时间校验。',
-    },
-    'en-US': {
-      name: 'AI layover meal matching',
-      description: 'Matches time of day, social preference and energy level to a low-friction airport or city meal slot.',
-    },
-  },
+
   'meal-voucher': {
     'zh-CN': {
       name: '机场地标美食核销券 (面值 ¥100)',

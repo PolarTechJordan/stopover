@@ -75,7 +75,6 @@ const iconMap = {
   'hotel-dayuse': BedDouble,
   shower: ShowerHead,
   'meal-voucher': Utensils,
-  'ai-group-meal': Sparkles,
   'private-car': Compass,
 } satisfies Record<AddonSku, React.ComponentType<{ size?: number; className?: string }>>;
 
@@ -147,118 +146,7 @@ function localizePersona(persona: ConciergePersonaTemplate, language: 'zh-CN' | 
   };
 }
 
-type MealPersona = 'E' | 'I';
-type MealEnergy = 'high' | 'low';
-type MealPeriod = 'day' | 'night';
 
-type MealMatch = {
-  name: string;
-  label: string;
-  periodLabel: string;
-  socialLabel: string;
-  energyLabel: string;
-  route: string;
-  table: string;
-  lift: string;
-  score: number;
-  reasons: string[];
-  texture: string;
-};
-
-function getMealPeriod(arrivalTimeStr: string): MealPeriod {
-  const hour = Number(arrivalTimeStr.slice(11, 13));
-  if (!Number.isFinite(hour)) return 'day';
-  return hour >= 7 && hour < 18 ? 'day' : 'night';
-}
-
-function buildMealMatch(profile: ConciergeProfile, persona: MealPersona, energy: MealEnergy): MealMatch {
-  const period = getMealPeriod(profile.arrivalTimeStr);
-  const key = `${period}-${persona}-${energy}` as const;
-  const base: Record<typeof key, Omit<MealMatch, 'periodLabel' | 'socialLabel' | 'energyLabel' | 'score'>> = {
-    'day-E-high': {
-      name: '南洋热力拼桌团餐',
-      label: '城市感最强',
-      route: '星耀樟宜 + 老巴刹风味桌',
-      table: '4-6 人拼桌',
-      lift: '+18% 加购意愿',
-      reasons: ['白天停留适合把餐食嵌进微游路线', 'E 型高能量用户更愿意接受拼桌和本地烟火气', '餐后仍保留返场安检缓冲'],
-      texture: 'from-cyan-300 via-blue-500 to-orange-300',
-    },
-    'day-E-low': {
-      name: '轻社交早午餐会合桌',
-      label: '轻松不赶',
-      route: '航站楼花园餐厅 + 快速集合点',
-      table: '2-4 人半开放桌',
-      lift: '+12% 下单稳定度',
-      reasons: ['白天有体验感，但不拉长动线', '保留社交氛围，降低体力消耗', '适合商旅或家庭临时拼单'],
-      texture: 'from-sky-200 via-teal-300 to-amber-200',
-    },
-    'day-I-high': {
-      name: '静享本地探索餐',
-      label: '安静但有记忆点',
-      route: '机场直连商区 + 小桌精选',
-      table: '独立小桌',
-      lift: '+14% 决策速度',
-      reasons: ['I 型用户需要确定边界和低打扰座位', '高能量允许少量探索但不强制社交', '餐厅靠近返场路线，减少迷路风险'],
-      texture: 'from-violet-200 via-cyan-300 to-blue-500',
-    },
-    'day-I-low': {
-      name: '低噪补能暖食',
-      label: '少走路优先',
-      route: '贵宾厅热食 + 靠窗安静区',
-      table: '静音单人/双人位',
-      lift: '+16% 支付完成率',
-      reasons: ['低能量用户最怕额外决策和移动', '机场内完成，几乎不增加误机风险', '适合睡眠不足、带娃或行李压力大场景'],
-      texture: 'from-blue-200 via-slate-200 to-cyan-200',
-    },
-    'night-E-high': {
-      name: '夜航安全拼餐局',
-      label: '夜间也有氛围',
-      route: '机场直连夜食街 + 专人会合',
-      table: '3-5 人安全拼桌',
-      lift: '+15% 夜航转化',
-      reasons: ['夜间不建议拉远距离，优先机场直连场景', 'E 型高能量仍需要一点社交和氛围', '龙腾出行负责会合点和返场提醒'],
-      texture: 'from-indigo-300 via-blue-500 to-fuchsia-400',
-    },
-    'night-E-low': {
-      name: '轻拼宵夜补给',
-      label: '低折腾社交',
-      route: '登机口附近热食 + 小范围拼单',
-      table: '2-3 人短时拼桌',
-      lift: '+11% 降低流失',
-      reasons: ['夜间低能量用户不适合复杂路线', '保留一点同路人氛围但缩短停留', '适合红眼航班前快速补糖和热食'],
-      texture: 'from-blue-300 via-slate-400 to-orange-300',
-    },
-    'night-I-high': {
-      name: '夜间私享热食盒',
-      label: '清醒但不社交',
-      route: '贵宾厅取餐 + 安静观景位',
-      table: '独立位',
-      lift: '+13% 安心感',
-      reasons: ['夜间高能量更适合可控的小范围体验', 'I 型用户不需要拼桌，只要餐食有品质', '离登机动线近，可随时撤回'],
-      texture: 'from-cyan-200 via-indigo-400 to-violet-500',
-    },
-    'night-I-low': {
-      name: '静音恢复热汤餐',
-      label: '红眼恢复',
-      route: '淋浴后热汤 + 休息区送达',
-      table: '低打扰座位',
-      lift: '+19% 减少放弃',
-      reasons: ['夜间低能量核心是安全、热食和少走路', '餐食跟淋浴/休息室联动，降低切换成本', '返场提醒由订单状态机兜底'],
-      texture: 'from-slate-200 via-blue-300 to-cyan-300',
-    },
-  };
-  const match = base[key];
-  const score = 89 + (period === 'night' ? 3 : 0) + (energy === 'low' ? 2 : 0) + (persona === 'I' ? 1 : 0);
-
-  return {
-    ...match,
-    periodLabel: period === 'day' ? '白天停留' : '夜航停留',
-    socialLabel: persona === 'E' ? 'E 型社交' : 'I 型低打扰',
-    energyLabel: energy === 'high' ? '高能量' : '低能量',
-    score,
-  };
-}
 
 function makeId(prefix: string) {
   return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
@@ -296,8 +184,7 @@ export default function ConciergeDemo() {
   const [profile, setProfile] = useState<ConciergeProfile>(initialResolved.profile);
   const [plan, setPlan] = useState<ConciergePlan>(initialResolved.plan);
   const [selectedAddons, setSelectedAddons] = useState<AddonSku[]>(initialResolved.plan.recommendedAddons);
-  const [mealPersona, setMealPersona] = useState<MealPersona>('E');
-  const [mealEnergy, setMealEnergy] = useState<MealEnergy>('high');
+
   const [inputValue, setInputValue] = useState(initialPersona.scenarioPrompt);
   const [isAsking, setIsAsking] = useState(false);
   const [lastSource, setLastSource] = useState('ready');
@@ -328,11 +215,7 @@ export default function ConciergeDemo() {
   const totalPrice = validSelectedAddons.reduce((sum, sku) => {
     return sum + (addons.find((item) => item.sku === sku)?.price ?? 0);
   }, activePackage.price);
-  const mealMatch = useMemo(
-    () => buildMealMatch(profile, mealPersona, mealEnergy),
-    [mealEnergy, mealPersona, profile],
-  );
-  const hasMealMatch = validSelectedAddons.includes('ai-group-meal');
+
   const localizedPlanSummary =
     language === 'zh-CN'
       ? plan.summary
@@ -454,8 +337,7 @@ export default function ConciergeDemo() {
     setProfile(resolved.profile);
     setPlan(resolved.plan);
     setSelectedAddons(resolved.plan.recommendedAddons);
-    setMealPersona(persona.profile.partyType === 'rest' || persona.profile.partyType === 'family' ? 'I' : 'E');
-    setMealEnergy(persona.profile.partyType === 'rest' || persona.profile.partyType === 'family' ? 'low' : 'high');
+
     setInputValue('');
     setMessages([
       {
@@ -842,22 +724,7 @@ export default function ConciergeDemo() {
                 </div>
               </div>
 
-              {hasMealMatch && (
-                <div className="rounded-2xl border border-orange-200/25 bg-orange-200/10 p-4">
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-2 text-xs font-black text-orange-100">
-                      <ChefHat size={16} />
-                      <span>{language === 'zh-CN' ? mealMatch.name : 'AI meal slot'}</span>
-                    </div>
-                    <span className="text-[10px] font-black text-cyan-100">{mealMatch.score}%</span>
-                  </div>
-                  <p className="mt-2 text-[11px] font-semibold leading-5 text-slate-300">
-                    {language === 'zh-CN'
-                      ? `${mealMatch.periodLabel} / ${mealMatch.socialLabel} / ${mealMatch.energyLabel}，随电子凭证一起核销。`
-                      : 'Optional meal redemption is attached to the same voucher.'}
-                  </p>
-                </div>
-              )}
+
 
               <div className="grid grid-cols-2 gap-2">
                 {plan.modules.map((item) => {

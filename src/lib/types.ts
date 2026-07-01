@@ -43,7 +43,6 @@ export type AddonSku =
   | 'hotel-dayuse'
   | 'shower'
   | 'meal-voucher'
-  | 'ai-group-meal'
   | 'private-car';
 
 export interface Addon {

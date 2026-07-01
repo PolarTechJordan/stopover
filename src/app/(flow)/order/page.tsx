@@ -2,7 +2,7 @@
 
 import React, { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { useOrderStore } from '@/lib/store/orderStore';
+import { useOrderStore, getMockOrderForCaseId } from '@/lib/store/orderStore';
 import { QRCodeSVG } from 'qrcode.react';
 import { addons } from '@/lib/mockData';
 import { getAddonLabel, getPackageLabel, t } from '@/lib/appPreferences';
@@ -17,9 +17,21 @@ function OrderDetailContent() {
   const searchParams = useSearchParams();
   const { language } = useAppPreferences();
   const orderId = searchParams.get('id');
-  const { currentOrder } = useOrderStore();
+  const { currentOrder: storeOrder } = useOrderStore();
 
-  if (!currentOrder || (orderId && currentOrder.orderId !== orderId)) {
+  // Resolve order: matching ID in store, or case ID fallback, or storeOrder, or case-10h fallback
+  let currentOrder = null;
+  if (orderId) {
+    if (storeOrder && storeOrder.orderId === orderId) {
+      currentOrder = storeOrder;
+    } else {
+      currentOrder = getMockOrderForCaseId(orderId);
+    }
+  } else {
+    currentOrder = storeOrder || getMockOrderForCaseId('case-10h');
+  }
+
+  if (!currentOrder) {
     return (
       <div className="flex-1 py-20 text-center">
         <h2 className="text-xl font-bold text-slate-800">{t(language, 'order.notFound')}</h2>
@@ -49,7 +61,7 @@ function OrderDetailContent() {
   const addonNames = currentOrder.addons
     .map((sku) => addons.find((item) => item.sku === sku) ? getAddonLabel(sku, language) : sku)
     .join('、');
-  const hasAiMeal = currentOrder.addons.includes('ai-group-meal');
+
 
   return (
     <div className="flex-1 w-full max-w-7xl mx-auto px-4 py-5 pb-24 sm:px-6 sm:py-8 md:pb-8 flex flex-col gap-2">
@@ -201,30 +213,7 @@ function OrderDetailContent() {
 
             <div className="h-[1px] bg-slate-100" />
 
-            {hasAiMeal && (
-              <>
-                <div className="rounded-2xl border border-cyan-100 bg-[linear-gradient(135deg,#effcff,#fff7ed)] p-4">
-                  <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.16em] text-primary">
-                    <Sparkles size={14} />
-                    <span>{language === 'zh-CN' ? 'DragonPass MealPulse' : 'Meal add-on'}</span>
-                  </div>
-                  <div className="mt-2 flex items-start gap-3">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-orange-200">
-                      <ChefHat size={18} />
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-black text-slate-900">{language === 'zh-CN' ? 'AI 停留团餐核销已生成' : 'Meal redemption has been generated'}</h4>
-                      <p className="mt-1 text-[11px] font-semibold leading-5 text-slate-500">
-                        {language === 'zh-CN'
-                          ? '餐位、会合点、返场提醒与订单二维码绑定。到达后礼宾会按当前航班时段和能量偏好确认最终餐厅。'
-                          : 'Meal slot, meeting point and return reminders are bound to the same order QR.'}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                <div className="h-[1px] bg-slate-100" />
-              </>
-            )}
+
 
             <div className="flex justify-between items-baseline">
               <span className="text-xs text-slate-400 font-bold">{t(language, 'order.paid')}:</span>

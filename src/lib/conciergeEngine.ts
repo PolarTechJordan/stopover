@@ -168,20 +168,17 @@ function recommendAddons(profile: ConciergeProfile, packageSku: PackageSku): Add
   result.add('esim');
 
   if (packageSku === 'light') {
-    result.add('ai-group-meal');
     result.add('shower');
     result.add('meal-voucher');
   }
 
   if (packageSku === 'micro') {
     result.add('transfer');
-    result.add('ai-group-meal');
   }
 
   if (packageSku === 'overnight') {
     result.add('hotel-dayuse');
     result.add('transfer');
-    result.add('ai-group-meal');
   }
 
   if (profile.wantsPrivateCar) {
@@ -302,7 +299,7 @@ export function buildConciergePlan(
       : intent === 'baggage'
         ? ['行李丢了怎么赔', 'RFID 什么时候绑定', '回机场前多久送回']
         : intent === 'addons'
-        ? ['加 AI 团餐匹配', '我要包车升级', '只想加酒店钟点房']
+        ? ['eSIM 高速流量包', '我要包车升级', '只想加酒店钟点房']
           : ['我要下单', '看行李托管细节', '换成过夜休息方案'];
 
   return {
@@ -356,7 +353,7 @@ export function buildDeterministicReply(plan: ConciergePlan, language: LanguageC
 
     if (plan.intent === 'addons') {
       const labels = plan.recommendedAddons.map((sku) => getAddonLabel(sku, language)).join(', ');
-      return `Yes. The best add-ons are ${labels || 'eSIM and meal matching'}, and I will attach them to the same voucher.`;
+      return `Yes. The best add-ons are ${labels || 'eSIM'}, and I will attach them to the same voucher.`;
     }
 
     if (plan.intent === 'checkout') {
@@ -385,7 +382,7 @@ export function buildDeterministicReply(plan: ConciergePlan, language: LanguageC
   }
 
   if (plan.intent === 'addons') {
-    return `可以加购。当前最适合的是${plan.recommendedAddons.map((sku) => addons.find((item) => item.sku === sku)?.name).filter(Boolean).join('、') || 'eSIM 和 AI 团餐匹配'}，我会把价格合并进同一张电子凭证。`;
+    return `可以加购。当前最适合的是${plan.recommendedAddons.map((sku) => addons.find((item) => item.sku === sku)?.name).filter(Boolean).join('、') || 'eSIM'}，我会把价格合并进同一张电子凭证。`;
   }
 
   if (plan.intent === 'checkout') {

@@ -1,5 +1,5 @@
-import StopoverDashboard from '@/components/features/StopoverDashboard';
+import PitchPage from '@/components/features/PitchPage';
 
 export default function HomePage() {
-  return <StopoverDashboard />;
+  return <PitchPage />;
 }

@@ -30,6 +30,7 @@ import {
 } from 'lucide-react';
 import { useAppPreferences } from './AppPreferenceProvider';
 import { STOP_OVER_PRD } from '@/lib/prdRules';
+import { useOrderStore } from '@/lib/store/orderStore';
 
 type DashboardCopy = {
   brand: string;
@@ -106,7 +107,7 @@ const zhCopy: DashboardCopy = {
   subBrand: '中转礼遇',
   headline: '6–48 小时中转，托付好了。',
   subline: '贵宾厅信任锚 · 行李安全 · 时间有保障',
-  nav: ['仪表盘', '预订中转', '我的行程', '我的订单', '个人资料', '支持'],
+  nav: ['仪表盘', '预订中转', '我的行程', '我的订单'],
   promise: 'DragonPass 承诺',
   promiseItems: [
     { title: '贵宾厅可信', body: '全球网络，核验服务' },
@@ -197,7 +198,7 @@ const enCopy: DashboardCopy = {
   subBrand: 'STOPOVER',
   headline: '6–48 Hour Layover, Handled.',
   subline: 'Lounge trust. Baggage safe. Time well spent.',
-  nav: ['Dashboard', 'Book Stopover', 'My Trips', 'My Orders', 'My Profile', 'Support'],
+  nav: ['Dashboard', 'Book Stopover', 'My Trips', 'My Orders'],
   promise: 'DragonPass Promise',
   promiseItems: [
     { title: 'Lounge Trust', body: 'Global network, verified' },
@@ -288,8 +289,8 @@ const enCopy: DashboardCopy = {
   mobileMenu: 'Menu',
 };
 
-const navLinks = ['/', '/search', '/journey', '/order', '/pitch', '/pitch'];
-const navIcons = [Home, Plane, BriefcaseBusiness, FileText, UserRound, Headphones];
+const navLinks = ['/dashboard', '/packages', '/journey', '/order'];
+const navIcons = [Home, Plane, BriefcaseBusiness, FileText];
 const statIcons = [Star, Globe2, Building2, Clock3];
 
 const loungeImage =
@@ -348,11 +349,7 @@ export default function StopoverDashboard() {
                   <span className="font-black">{copy.textScale}</span>
                   <span className="hidden sm:inline">{scaleLabel}</span>
                 </button>
-                <div className="hidden h-10 items-center gap-2 rounded-lg border border-white/18 bg-white/6 px-3 lg:flex">
-                  <CircleUserRound size={18} />
-                  <span className="text-xs font-semibold text-white">{copy.profileName}</span>
-                  <span className="rounded bg-white/12 px-1.5 py-0.5 text-[10px] font-black text-white">PPT</span>
-                </div>
+                {/* Profile display removed */}
                 <button
                   type="button"
                   className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-white/18 bg-white/6 text-white lg:hidden"
@@ -395,6 +392,16 @@ export default function StopoverDashboard() {
 }
 
 function Sidebar({ copy }: { copy: DashboardCopy }) {
+  const { currentOrder } = useOrderStore();
+  const currentOrderId = currentOrder?.orderId || 'case-10h';
+
+  const dynamicNavLinks = [
+    '/dashborad',
+    '/packages?id=case-10h',
+    `/journey?id=${currentOrderId}`,
+    `/order?id=${currentOrderId}`
+  ];
+
   return (
     <aside className="hidden min-h-0 flex-col justify-between border-r border-white/12 bg-[#06152c] px-4 py-5 lg:flex">
       <nav className="space-y-2">
@@ -404,7 +411,7 @@ function Sidebar({ copy }: { copy: DashboardCopy }) {
           return (
             <Link
               key={label}
-              href={navLinks[index]}
+              href={dynamicNavLinks[index]}
               className={`flex h-12 items-center gap-3 rounded-lg px-3 text-sm font-medium transition ${
                 active
                   ? 'border-l-4 border-[#ff7a00] bg-white/10 text-white shadow-sm'
@@ -437,7 +444,7 @@ function Sidebar({ copy }: { copy: DashboardCopy }) {
           </div>
         </div>
         <Link
-          href="/pitch"
+          href="/"
           className="flex items-center justify-between rounded-lg border border-white/12 bg-[#071b38] px-4 py-3 text-white transition hover:bg-white/8"
         >
           <div className="flex items-center gap-3">
@@ -567,7 +574,7 @@ function RecommendationCard({ copy, isDark }: { copy: DashboardCopy; isDark: boo
               <div className="text-xs font-medium opacity-65">{copy.priceUnit}</div>
             </div>
             <Link
-              href="/search"
+              href="/packages?id=case-10h"
               className="inline-flex h-11 w-full shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded bg-[#f97316] px-4 text-xs font-black text-white shadow-lg shadow-orange-600/20 transition hover:bg-[#ea580c] active:scale-[0.98] sm:text-sm 2xl:w-auto 2xl:min-w-[156px]"
             >
               <span>{copy.viewOrder}</span>
@@ -577,7 +584,7 @@ function RecommendationCard({ copy, isDark }: { copy: DashboardCopy; isDark: boo
         </div>
       </div>
 
-      <Link href="/search" className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-[#0b5fff]">
+      <Link href="/packages?id=case-10h" className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-[#0b5fff]">
         <span>{copy.viewPackages}</span>
         <ChevronRight size={16} />
       </Link>
@@ -786,7 +793,7 @@ function PhonePreview({ copy }: { copy: DashboardCopy }) {
                 <div className="min-w-0">
                   <div className="text-sm font-black leading-tight">{copy.packageName}</div>
                   <div className="mt-2 text-base font-black">{copy.packagePrice}</div>
-                  <Link href="/search" className="mt-3 flex h-9 items-center justify-center rounded bg-[#f97316] text-xs font-black text-white">
+                  <Link href="/packages?id=case-10h" className="mt-3 flex h-9 items-center justify-center rounded bg-[#f97316] text-xs font-black text-white">
                     {copy.viewOrder.replace(' & ', ' &\u00a0')}
                   </Link>
                 </div>
@@ -804,7 +811,7 @@ function PhonePreview({ copy }: { copy: DashboardCopy }) {
                 </div>
               ))}
             </div>
-            <Link href="/search" className="flex h-11 items-center justify-center rounded bg-[#f97316] text-sm font-black text-white">
+            <Link href="/packages?id=case-10h" className="flex h-11 items-center justify-center rounded bg-[#f97316] text-sm font-black text-white">
               {copy.viewOrder}
             </Link>
           </div>
@@ -840,7 +847,7 @@ function StatsBar({ copy }: { copy: DashboardCopy }) {
           );
         })}
         <Link
-          href="/pitch"
+          href="/"
           className="flex items-center justify-between rounded-lg border border-white/16 bg-white/5 px-4 py-3 text-white transition hover:bg-white/9"
         >
           <div className="flex items-center gap-3">

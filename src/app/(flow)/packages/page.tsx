@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useEffect, useMemo, useState, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useOrderStore } from '@/lib/store/orderStore';
-import { packages, addons, airports } from '@/lib/mockData';
+import { packages, addons, airports, mockFlightCases } from '@/lib/mockData';
+import { getDefaultReservedServiceHours } from '@/lib/prdRules';
 import { formatHours, localizeAddon, localizeAirport, localizePackage, t } from '@/lib/appPreferences';
 import { getPackageTimeFit, getRecommendedPackageSku } from '@/lib/prdRules';
 import { useAppPreferences } from '@/components/features/AppPreferenceProvider';
@@ -14,24 +15,49 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 
-export default function PackagesPage() {
+function PackagesContent() {
   const router = useRouter();
+  const searchParamsQuery = useSearchParams();
+  const caseId = searchParamsQuery.get('id');
   const { language } = useAppPreferences();
   const { 
     searchParams, selectedPackageSku, selectedAddonSkus,
-    selectPackage, toggleAddon 
+    selectPackage, toggleAddon, setSearchParams
   } = useOrderStore();
 
+  // If a case ID is provided, initialize search params from that case
   useEffect(() => {
-    // If search params don't exist, go back to search
-    if (!searchParams) {
+    if (caseId) {
+      const caseItem = mockFlightCases.find(c => c.id === caseId);
+      if (caseItem) {
+        setSearchParams({
+          airportCode: caseItem.airportCode,
+          arrivalFlightNo: caseItem.arrivalFlightNo,
+          departureFlightNo: caseItem.departureFlightNo,
+          layoverHours: getDefaultReservedServiceHours(caseItem.calculatedLayover),
+          totalTransitHours: caseItem.calculatedLayover,
+          arrivalTimeStr: caseItem.arrivalTimeStr,
+          departureTimeStr: caseItem.departureTimeStr,
+          baggagePieces: 1
+        });
+        
+        // Select appropriate package SKU matching the case
+        let sku: 'light' | 'micro' | 'overnight' = 'light';
+        if (caseId === 'case-10h') sku = 'micro';
+        else if (caseId === 'case-23h' || caseId === 'case-35h') sku = 'overnight';
+        selectPackage(sku);
+      }
+    }
+  }, [caseId, setSearchParams, selectPackage]);
+
+  useEffect(() => {
+    // If search params don't exist and we're not loading from a caseId, go back to search
+    if (!searchParams && !caseId) {
       router.push('/search');
     }
-  }, [searchParams, router]);
+  }, [searchParams, caseId, router]);
 
   const recommendedSku = searchParams ? getRecommendedPackageSku(searchParams.totalTransitHours) : 'light';
-  const [mealPersona, setMealPersona] = useState<'E' | 'I'>('E');
-  const [mealEnergy, setMealEnergy] = useState<'high' | 'low'>('high');
 
   // If no package has been explicitly selected yet, default to the recommended one
   useEffect(() => {
@@ -42,98 +68,6 @@ export default function PackagesPage() {
 
   const rawActivePackage = packages.find(p => p.sku === (selectedPackageSku || recommendedSku))!;
   const activePackage = localizePackage(rawActivePackage, language);
-  const mealPeriod = useMemo(() => {
-    if (!searchParams) return 'day' as const;
-    const hour = Number(searchParams.arrivalTimeStr.slice(11, 13));
-    return Number.isFinite(hour) && (hour < 7 || hour >= 18) ? 'night' as const : 'day' as const;
-  }, [searchParams]);
-  const mealRecommendation = useMemo(() => {
-    const key = `${mealPeriod}-${mealPersona}-${mealEnergy}`;
-    const map: Record<string, { nameZh: string; nameEn: string; noteZh: string; noteEn: string; tableZh: string; tableEn: string; score: number }> = {
-      'day-E-high': {
-        nameZh: '南洋热力拼桌团餐',
-        nameEn: 'Nanyang Social Energy Table',
-        noteZh: '白天高能量，适合把本地特色餐嵌入城市微游，提高停留期待感。',
-        noteEn: 'High-energy daytime window pairs local flavors with the city route to raise stopover anticipation.',
-        tableZh: '4-6 人拼桌',
-        tableEn: '4-6 guest shared table',
-        score: 96,
-      },
-      'day-E-low': {
-        nameZh: '轻社交早午餐会合桌',
-        nameEn: 'Light Social Brunch Table',
-        noteZh: '保留一点社交氛围，但控制步行和等位时间。',
-        noteEn: 'Keeps a light social layer while controlling walking and queue time.',
-        tableZh: '2-4 人半开放桌',
-        tableEn: '2-4 guest semi-private table',
-        score: 92,
-      },
-      'day-I-high': {
-        nameZh: '静享本地探索餐',
-        nameEn: 'Quiet Local Discovery Meal',
-        noteZh: '小范围探索，不强制拼桌，适合想体验但不想被打扰的旅客。',
-        noteEn: 'A compact local food stop without forced socializing.',
-        tableZh: '独立小桌',
-        tableEn: 'Private small table',
-        score: 93,
-      },
-      'day-I-low': {
-        nameZh: '低噪补能暖食',
-        nameEn: 'Low-Noise Recovery Meal',
-        noteZh: '机场内完成，低移动、低决策，最适合疲惫或带娃场景。',
-        noteEn: 'Airport-side, low-mobility and low-decision, best for tired travelers or families.',
-        tableZh: '静音座位',
-        tableEn: 'Quiet seating',
-        score: 95,
-      },
-      'night-E-high': {
-        nameZh: '夜航安全拼餐局',
-        nameEn: 'Night-Safe Shared Supper',
-        noteZh: '夜间不拉远距离，保留同路人氛围和安全会合点。',
-        noteEn: 'Keeps the meal close to the travel path while preserving a safe shared-table feel.',
-        tableZh: '3-5 人安全拼桌',
-        tableEn: '3-5 guest safe shared table',
-        score: 94,
-      },
-      'night-E-low': {
-        nameZh: '轻拼宵夜补给',
-        nameEn: 'Light Shared Late Supper',
-        noteZh: '短时热食、低步行，降低红眼航班前的放弃率。',
-        noteEn: 'Short hot meal, low walking, designed for red-eye recovery.',
-        tableZh: '2-3 人短时拼桌',
-        tableEn: '2-3 guest short table',
-        score: 91,
-      },
-      'night-I-high': {
-        nameZh: '夜间私享热食盒',
-        nameEn: 'Private Night Hot Meal Box',
-        noteZh: '靠近登机动线，安静补能，随时可撤回。',
-        noteEn: 'Quiet hot meal near the boarding path, easy to exit at any time.',
-        tableZh: '独立位',
-        tableEn: 'Private seat',
-        score: 93,
-      },
-      'night-I-low': {
-        nameZh: '静音恢复热汤餐',
-        nameEn: 'Silent Recovery Soup Meal',
-        noteZh: '淋浴后热汤和休息区送达，核心是安全、热食、少走路。',
-        noteEn: 'Warm soup after shower, delivered near rest areas with minimum walking.',
-        tableZh: '低打扰座位',
-        tableEn: 'Low-interruption seat',
-        score: 97,
-      },
-    };
-    const recommendation = map[key];
-    return {
-      name: language === 'zh-CN' ? recommendation.nameZh : recommendation.nameEn,
-      note: language === 'zh-CN' ? recommendation.noteZh : recommendation.noteEn,
-      table: language === 'zh-CN' ? recommendation.tableZh : recommendation.tableEn,
-      score: recommendation.score,
-    };
-  }, [language, mealEnergy, mealPeriod, mealPersona]);
-  const mealAddon = addons.find((item) => item.sku === 'ai-group-meal');
-  const isMealSelected = selectedAddonSkus.includes('ai-group-meal');
-
   if (!searchParams) return null;
 
   const currentAirport = localizeAirport(airports.find(a => a.code === searchParams.airportCode)!, language);
@@ -252,131 +186,7 @@ export default function PackagesPage() {
             })}
           </div>
 
-          {activePackage.addons.includes('ai-group-meal') && mealAddon && (
-            <div className="liquid-glass-dark relative overflow-hidden rounded-3xl p-5 text-white shadow-2xl">
-              <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-200 to-transparent" />
-              <div className="grid gap-5 lg:grid-cols-[1fr_260px]">
-                <div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="inline-flex items-center gap-1.5 rounded-full border border-cyan-200/35 bg-cyan-200/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-cyan-100">
-                      <Sparkles size={12} />
-                      {language === 'zh-CN' ? '龙腾出行 AI 团餐匹配' : 'AI meal matching add-on'}
-                    </span>
-                    <span className="rounded-full bg-white/10 px-2.5 py-1 text-[10px] font-black text-orange-100">
-                      {language === 'zh-CN' ? `随套餐加购 +¥${mealAddon.price}` : `Add-on +¥${mealAddon.price}`}
-                    </span>
-                  </div>
 
-                  <h3 className="mt-3 text-2xl font-black tracking-normal text-white">{mealRecommendation.name}</h3>
-                  <p className="mt-2 text-sm font-semibold leading-7 text-slate-300">
-                    {language === 'zh-CN'
-                      ? `${mealRecommendation.note} 系统会把餐位、会合点和返场提醒写入同一张电子凭证，减少用户订票后的停留焦虑。`
-                      : 'This optional meal slot is attached to the same voucher, with meeting point and return reminders kept inside the fulfillment flow.'}
-                  </p>
-
-                  <div className="mt-4 grid gap-3 sm:grid-cols-4">
-                    {[
-                      {
-                        label:
-                          mealPeriod === 'day'
-                            ? language === 'zh-CN' ? '白天停留' : 'Daytime stopover'
-                            : language === 'zh-CN' ? '夜航停留' : 'Night stopover',
-                        icon: mealPeriod === 'day' ? SunMedium : Moon,
-                      },
-                      {
-                        label:
-                          mealPersona === 'E'
-                            ? language === 'zh-CN' ? 'E 型社交' : 'Extrovert social'
-                            : language === 'zh-CN' ? 'I 型低打扰' : 'Introvert low-interruption',
-                        icon: UsersRound,
-                      },
-                      {
-                        label:
-                          mealEnergy === 'high'
-                            ? language === 'zh-CN' ? '高能量' : 'High energy'
-                            : language === 'zh-CN' ? '低能量' : 'Low energy',
-                        icon: mealEnergy === 'high' ? Zap : BatteryCharging,
-                      },
-                      { label: mealRecommendation.table, icon: ChefHat },
-                    ].map((item) => {
-                      const Icon = item.icon;
-                      return (
-                        <div key={item.label} className="rounded-2xl border border-white/10 bg-white/8 p-3">
-                          <Icon size={16} className="text-orange-200" />
-                          <div className="mt-2 text-[11px] font-black text-slate-100">{item.label}</div>
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="flex gap-2">
-                      {(['E', 'I'] as const).map((item) => (
-                        <button
-                          key={item}
-	                          type="button"
-	                          onClick={() => setMealPersona(item)}
-	                          className={`rounded-full border px-3 py-2 text-[11px] font-black transition ${
-	                            mealPersona === item
-	                              ? 'border-cyan-100 bg-cyan-200 text-[#062033] shadow-lg shadow-cyan-400/20'
-	                              : 'border-white/12 bg-white/8 text-slate-200 hover:border-white/24 hover:bg-white/14'
-	                          }`}
-                        >
-                          {item === 'E'
-                            ? language === 'zh-CN' ? 'E 人社交' : 'Extrovert'
-                            : language === 'zh-CN' ? 'I 人低打扰' : 'Introvert'}
-                        </button>
-                      ))}
-                    </div>
-                    <div className="flex gap-2">
-                      {(['high', 'low'] as const).map((item) => (
-                        <button
-                          key={item}
-	                          type="button"
-	                          onClick={() => setMealEnergy(item)}
-	                          className={`rounded-full border px-3 py-2 text-[11px] font-black transition ${
-	                            mealEnergy === item
-	                              ? 'border-orange-100 bg-orange-200 text-[#2f1600] shadow-lg shadow-orange-400/20'
-	                              : 'border-white/12 bg-white/8 text-slate-200 hover:border-white/24 hover:bg-white/14'
-	                          }`}
-                        >
-                          {item === 'high'
-                            ? language === 'zh-CN' ? '高能量' : 'High energy'
-                            : language === 'zh-CN' ? '低能量' : 'Low energy'}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="rounded-3xl border border-white/15 bg-white/10 p-4">
-                  <div className="meal-pulse-ring mx-auto flex h-24 w-24 items-center justify-center rounded-full p-[4px]">
-                    <div className="flex h-full w-full flex-col items-center justify-center rounded-full bg-slate-950">
-                      <span className="text-3xl font-black leading-none">{mealRecommendation.score}</span>
-                      <span className="mt-1 text-[10px] font-black text-cyan-100">MATCH</span>
-                    </div>
-                  </div>
-                  <div className="mt-4 text-center text-xs font-semibold leading-6 text-slate-300">
-                    {language === 'zh-CN'
-                      ? '订票页推荐不打断主流程，只把最合适的餐位作为随票权益锁定。'
-                      : 'The booking page keeps this optional and does not interrupt the core package flow.'}
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => toggleAddon('ai-group-meal')}
-                    className={`mt-4 flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-3 text-xs font-black transition ${
-                      isMealSelected
-                        ? 'bg-cyan-200 text-slate-950 shadow-lg shadow-cyan-400/20'
-                        : 'bg-white text-slate-950 hover:bg-cyan-50'
-                    }`}
-                  >
-                    <Sparkles size={15} />
-                    <span>{isMealSelected ? (language === 'zh-CN' ? '已加入订单' : 'Added') : (language === 'zh-CN' ? '加入 AI 团餐匹配' : 'Add meal matching')}</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
 
           {/* Selected Package Details */}
           <div className="bg-white rounded-3xl p-6 md:p-8 border border-slate-100 shadow-sm">
@@ -489,5 +299,13 @@ export default function PackagesPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function PackagesPage() {
+  return (
+    <Suspense fallback={<div className="flex-grow flex items-center justify-center py-20 text-xs text-slate-500">正在加载套餐配置...</div>}>
+      <PackagesContent />
+    </Suspense>
   );
 }

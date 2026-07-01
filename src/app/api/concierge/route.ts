@@ -35,7 +35,6 @@ const stopoverKnowledge = [
   `行李全托管：中转柜台收件，RFID + 拍照登记 + 用户签字，${STOP_OVER_PRD.baggageTransferSlaMin} 分钟内转运至合作贵宾厅/酒店，每件最高 ¥${STOP_OVER_PRD.baggageCoverageCny} 行李险。`,
   `城市微游：固定时段、固定路线、专车 + 中文/英文向导 + 误时保护，原则是景点集中、避开高峰、确保起飞前 ${STOP_OVER_PRD.securityGateDeadlineMin} 分钟到达安检口。`,
   '增值项：eSIM、接送机、酒店钟点房、淋浴/睡眠舱、机场餐饮券、私人包车。',
-  'AI 团餐匹配：订票/选套餐时基于停留时段、E/I 社交偏好、能量水平、同行人数和返场缓冲，推荐机场内或城市内团餐；夜间优先安全近距，白天优先本地特色，低能量优先少步行低打扰，高能量可推荐拼团和城市餐食。',
   `误机保障：如我方城市游/酒店/接送导致登机前 ${STOP_OVER_PRD.securityGateDeadlineMin} 分钟未到安检口，自动启动改签协助、酒店餐食赔付，客服 ${STOP_OVER_PRD.conciergeInterventionSlaMin} 分钟内介入；行李返场在起飞前 ${STOP_OVER_PRD.baggageReturnBufferMin} 分钟启动。`,
   '竞品差异：不绑定单一航司，机场内外全链路，行李全托管，3 档套餐 + 增值项，按多枢纽复制。',
   '首个 PoC 枢纽建议新加坡樟宜，中文友好、机场生态成熟、城市路线集中。',
@@ -106,7 +105,37 @@ function buildMessages(
 }
 
 async function callModel(body: ConciergeRequest, profile: ConciergeProfile, plan: ConciergePlan) {
-  const apiKey = process.env.DASHSCOPE_API_KEY || process.env.COMPATIBLE_API_KEY;
+  let apiKey = '';
+  let baseUrl = '';
+  let model = '';
+
+  if (process.env.DEEPSEEK_API_KEY) {
+    apiKey = process.env.DEEPSEEK_API_KEY;
+    baseUrl = 'https://api.deepseek.com';
+    model = 'deepseek-chat';
+  } else if (process.env.DASHSCOPE_API_KEY) {
+    apiKey = process.env.DASHSCOPE_API_KEY;
+    baseUrl = 'https://dashscope.aliyuncs.com/compatible-mode/v1';
+    model = 'qwen3.7-max';
+  } else if (process.env.COMPATIBLE_API_KEY) {
+    apiKey = process.env.COMPATIBLE_API_KEY;
+    baseUrl = process.env.COMPATIBLE_BASE_URL || 'https://api.deepseek.com';
+    model = process.env.DEFAULT_MODEL || 'deepseek-chat';
+  } else {
+    // Default deployment fallback using provided DeepSeek key
+    apiKey = 'sk-520b300e6d1a4e2aa37b84a04266bace';
+    baseUrl = 'https://api.deepseek.com';
+    model = 'deepseek-chat';
+  }
+
+  // Override from env if manually forced
+  if (process.env.COMPATIBLE_BASE_URL) {
+    baseUrl = process.env.COMPATIBLE_BASE_URL;
+  }
+  if (process.env.DEFAULT_MODEL) {
+    model = process.env.DEFAULT_MODEL;
+  }
+
   const locale = body.locale === 'en-US' ? 'en-US' : 'zh-CN';
   const fallback = buildDeterministicReply(plan, locale);
 
@@ -114,8 +143,6 @@ async function callModel(body: ConciergeRequest, profile: ConciergeProfile, plan
     return { reply: fallback, source: 'fallback:no-key' };
   }
 
-  const baseUrl = process.env.COMPATIBLE_BASE_URL || DEFAULT_BASE_URL;
-  const model = process.env.DEFAULT_MODEL || DEFAULT_MODEL;
   const temperature = Number(process.env.MODEL_TEMPERATURE ?? 0.2);
   const timeoutMs = Math.max(1000, Number(process.env.LLM_CALL_TIMEOUT ?? 10) * 1000);
   const controller = new AbortController();
@@ -134,14 +161,14 @@ async function callModel(body: ConciergeRequest, profile: ConciergeProfile, plan
         temperature,
         max_tokens: 360,
         stream: false,
-        enable_thinking: false,
+        ...(model.includes('qwen') ? { enable_thinking: false } : {}),
       }),
       signal: controller.signal,
     });
 
     if (!response.ok) {
       const detail = await response.text();
-      console.warn('DashScope concierge call failed', response.status, detail.slice(0, 240));
+      console.warn('Concierge LLM call failed', response.status, detail.slice(0, 240));
       return { reply: fallback, source: `fallback:http-${response.status}` };
     }
 
@@ -149,10 +176,10 @@ async function callModel(body: ConciergeRequest, profile: ConciergeProfile, plan
     const reply = data?.choices?.[0]?.message?.content?.trim();
     return {
       reply: reply || fallback,
-      source: reply ? `dashscope:${model}` : 'fallback:empty',
+      source: reply ? `llm:${model}` : 'fallback:empty',
     };
   } catch (error) {
-    console.warn('DashScope concierge call errored', error);
+    console.warn('Concierge LLM call errored', error);
     return { reply: fallback, source: 'fallback:error' };
   } finally {
     clearTimeout(timer);
