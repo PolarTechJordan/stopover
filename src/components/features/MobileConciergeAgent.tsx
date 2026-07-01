@@ -644,12 +644,12 @@ export default function MobileConciergeAgent() {
         <button
           type="button"
           onClick={() => setIsOpen(true)}
-          className="concierge-launcher flex min-h-14 items-center justify-between gap-3 rounded-2xl border border-[#12345f] bg-[#06152c] px-4 py-3 text-left text-white shadow-2xl shadow-black/35 active:scale-[0.99]"
+          className="concierge-launcher relative flex min-h-14 items-center justify-between gap-3 overflow-hidden rounded-2xl border px-4 py-3 text-left transition duration-200 active:scale-[0.99]"
           aria-label={isChinese ? '打开龙腾中转礼遇助手' : 'Open DragonPass Stopover Concierge'}
         >
-          <span className="flex min-w-0 items-center gap-3">
+          <span className="relative z-10 flex min-w-0 items-center gap-3">
             <span className="meal-pulse-ring flex h-10 w-10 shrink-0 items-center justify-center rounded-xl p-[1px]">
-              <span className="flex h-full w-full items-center justify-center rounded-xl bg-[#06152c]">
+              <span className="concierge-launcher-icon-core flex h-full w-full items-center justify-center rounded-xl">
                 <Bot size={20} />
               </span>
             </span>
@@ -657,12 +657,12 @@ export default function MobileConciergeAgent() {
               <span className="block truncate text-sm font-black">
                 {isChinese ? conciergeNameZh : conciergeNameEn}
               </span>
-              <span className="block truncate text-[11px] font-semibold text-slate-300">
+              <span className="concierge-launcher-subtitle block truncate text-[11px] font-semibold">
                 {isChinese ? '对话 + 业务动作 · 下单追踪保障' : 'Conversation + actions · order tracking'}
               </span>
             </span>
           </span>
-          <Sparkles className="concierge-launcher-sparkle shrink-0 text-[#ff7a00]" size={20} />
+          <Sparkles className="concierge-launcher-sparkle relative z-10 shrink-0" size={20} />
         </button>
       )}
 
