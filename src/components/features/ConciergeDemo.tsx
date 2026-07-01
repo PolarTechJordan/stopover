@@ -181,6 +181,20 @@ export default function ConciergeDemo() {
       source: 'system',
     },
   ]);
+
+  useEffect(() => {
+    setMessages((current) => {
+      if (current.length === 1 && current[0].id === 'welcome') {
+        return [
+          {
+            ...current[0],
+            content: t(language, 'home.welcome'),
+          },
+        ];
+      }
+      return current;
+    });
+  }, [language]);
   const [profile, setProfile] = useState<ConciergeProfile>(initialResolved.profile);
   const [plan, setPlan] = useState<ConciergePlan>(initialResolved.plan);
   const [selectedAddons, setSelectedAddons] = useState<AddonSku[]>(initialResolved.plan.recommendedAddons);
@@ -588,7 +602,6 @@ export default function ConciergeDemo() {
                       {t(language, 'home.currentRecommendation')}
                     </div>
                     <h2 className="mt-1 truncate text-base font-black text-slate-950">{getPackageLabel(plan.packageSku, language)}</h2>
-                    <p className="mt-1 line-clamp-2 text-[11px] font-semibold leading-5 text-slate-500">{localizedPlanSummary}</p>
                   </div>
                   <div className="shrink-0 rounded-2xl bg-blue-600 px-3 py-2 text-right text-white shadow-lg shadow-blue-600/25">
                     <div className="text-[9px] font-bold opacity-80">{t(language, 'home.assurancePrice')}</div>
@@ -716,7 +729,6 @@ export default function ConciergeDemo() {
                     {t(language, 'home.currentRecommendation')}
                   </div>
                   <h2 className="mt-2 text-2xl font-black text-white">{getPackageLabel(plan.packageSku, language)}</h2>
-                  <p className="mt-2 text-xs font-semibold leading-6 text-slate-300">{localizedPlanSummary}</p>
                 </div>
                 <div className="rounded-2xl bg-cyan-200 px-3 py-2 text-right text-slate-950 shadow-lg shadow-cyan-400/25">
                   <div className="text-[10px] font-bold opacity-80">{t(language, 'home.assurancePrice')}</div>

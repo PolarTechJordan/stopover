@@ -32,6 +32,7 @@ import { STOP_OVER_PRD } from '@/lib/prdRules';
 import { useOrderStore } from '@/lib/store/orderStore';
 import type { AddonSku, OrderStatus, StopoverOrder } from '@/lib/types';
 import { useAppPreferences } from './AppPreferenceProvider';
+import { getPackageLabel } from '@/lib/appPreferences';
 
 type ChatItem = ConciergeMessage & {
   id: string;
@@ -164,11 +165,27 @@ export default function MobileConciergeAgent() {
       id: 'mobile-welcome',
       role: 'assistant',
       content: isChinese
-        ? '我是龙腾中转礼遇助手。告诉我机场、停留时长和行李，我会按 PRD 的 6-48 小时规则给出套餐、托管、下单和返场保障建议。'
-        : 'I am DragonPass Stopover Concierge. Tell me your airport, layover time and bags, and I will follow the PRD 6-48h rules for package, custody, order and return assurance.',
+        ? '您好，我是龙腾中转礼遇助手。告诉我您转机的机场、停留时长和行李件数，我会给出符合您需求的机场中转游的套餐包和返场保障建议'
+        : 'Hello! I\'m your DragonPass Stopover Concierge. Tell me your layover airport, duration, and baggage count, and I will recommend stopover packages and return transfer plans.',
       source: 'system',
     },
   ]);
+
+  useEffect(() => {
+    setMessages((current) => {
+      if (current.length === 1 && current[0].id === 'mobile-welcome') {
+        return [
+          {
+            ...current[0],
+            content: isChinese
+              ? '您好，我是龙腾中转礼遇助手。告诉我您转机的机场、停留时长和行李件数，我会给出符合您需求的机场中转游的套餐包和返场保障建议'
+              : 'Hello! I\'m your DragonPass Stopover Concierge. Tell me your layover airport, duration, and baggage count, and I will recommend stopover packages and return transfer plans.',
+          },
+        ];
+      }
+      return current;
+    });
+  }, [language, isChinese]);
   const [dialogHeight, setDialogHeight] = useState<number | null>(null);
   const [isDraggingDialog, setIsDraggingDialog] = useState(false);
   const dialogRef = useRef<HTMLElement>(null);
@@ -416,8 +433,8 @@ export default function MobileConciergeAgent() {
     const order = createOrder();
     addDemoLog(
       isChinese
-        ? `助手按 ${plan.packageName} 创建订单 ${order.orderId}，已生成 QR 凭证与 RFID 行李卡。`
-        : `Concierge created order ${order.orderId} from ${plan.packageName}.`,
+        ? `助手按 ${getPackageLabel(plan.packageSku, language)} 创建订单 ${order.orderId}，已生成 QR 凭证与 RFID 行李卡。`
+        : `Concierge created order ${order.orderId} from ${getPackageLabel(plan.packageSku, language)}.`,
     );
 
     if (navigateTo) {
@@ -740,8 +757,7 @@ export default function MobileConciergeAgent() {
                   <div className="text-[11px] font-semibold text-[#64748b]">
                     {isChinese ? '当前推荐' : 'Current recommendation'}
                   </div>
-                  <div className="mt-0.5 truncate text-[13px] font-black leading-4">{plan.packageName}</div>
-                  <p className="mt-0.5 line-clamp-1 text-[10px] font-semibold leading-4 text-[#52627a]">{plan.summary}</p>
+                  <div className="mt-0.5 truncate text-[13px] font-black leading-4">{getPackageLabel(plan.packageSku, language)}</div>
                 </div>
                 <div className="shrink-0 rounded-xl bg-[#eaf1fb] px-2.5 py-1.5 text-center">
                   <div className="text-[10px] font-black text-[#0b5fff]">{plan.airportCode}</div>

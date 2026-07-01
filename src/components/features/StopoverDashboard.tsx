@@ -105,7 +105,7 @@ type DashboardCopy = {
 const zhCopy: DashboardCopy = {
   brand: '龙腾',
   subBrand: '中转礼遇',
-  headline: '6–48 小时中转，托付好了。',
+  headline: '6 至 48 小时中转，全程安心托付',
   subline: '贵宾厅信任锚 · 行李安全 · 时间有保障',
   nav: ['仪表盘', '预订中转', '我的行程', '我的订单'],
   promise: 'DragonPass 承诺',
