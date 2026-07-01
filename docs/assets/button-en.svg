@@ -1,5 +1,18 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="174" height="42" viewBox="0 0 174 42" role="img" aria-labelledby="title">
-  <title id="title">English Version</title>
-  <rect x="1" y="1" width="172" height="40" rx="20" fill="#ffffff" stroke="#0B5FFF" stroke-width="2"/>
-  <text x="87" y="27" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="800" fill="#0B5FFF">English Version</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="248" height="58" viewBox="0 0 248 58" role="img" aria-labelledby="title">
+  <title id="title">Open English Version</title>
+  <defs>
+    <linearGradient id="en-bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#FFF8F2"/>
+      <stop offset="1" stop-color="#FFFFFF"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-40%" width="140%" height="180%">
+      <feDropShadow dx="0" dy="8" stdDeviation="7" flood-color="#0B2B5F" flood-opacity="0.14"/>
+    </filter>
+  </defs>
+  <rect x="4" y="4" width="240" height="50" rx="25" fill="url(#en-bg)" stroke="#0B5FFF" stroke-width="2" filter="url(#shadow)"/>
+  <circle cx="35" cy="29" r="16" fill="#0B5FFF" opacity="0.1"/>
+  <text x="35" y="35" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="15" font-weight="900" fill="#0B5FFF">EN</text>
+  <text x="70" y="27" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="900" fill="#0B2B5F">English Version</text>
+  <text x="70" y="42" font-family="Inter, Arial, sans-serif" font-size="11" font-weight="700" fill="#67758A">Product demo in English</text>
+  <path d="M207 29 H222 M216 23 L222 29 L216 35" fill="none" stroke="#0B5FFF" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>

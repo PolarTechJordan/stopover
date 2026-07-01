@@ -549,22 +549,22 @@ export default function MobileConciergeAgent() {
 
       {isOpen && (
         <section
-          className="concierge-dialog flex flex-col overflow-hidden rounded-t-[24px] border border-[#1d3559] bg-[#f8fafc] text-[#071632] shadow-2xl shadow-black/40 md:rounded-[24px]"
+          className="concierge-dialog flex flex-col overflow-hidden rounded-t-[24px] border border-[#1d3559] bg-[#f8fafc] text-[#071632] shadow-2xl shadow-black/40 md:rounded-[18px]"
           role="dialog"
           aria-modal="true"
           aria-label={isChinese ? '龙腾中转礼遇助手对话框' : 'DragonPass Stopover Concierge dialog'}
         >
-          <div className="bg-[#06152c] px-4 pb-2.5 pt-2.5 text-white">
-            <div className="mx-auto mb-2 h-1.5 w-12 rounded-full bg-white/24" />
+          <div className="bg-[#06152c] px-4 pb-2.5 pt-2.5 text-white md:px-3 md:pb-2 md:pt-2">
+            <div className="mx-auto mb-2 h-1.5 w-12 rounded-full bg-white/24 md:hidden" />
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
                   <Bot size={20} className="text-[#7dd3fc]" />
-                  <h2 className="truncate text-sm font-black">
+                  <h2 className="truncate text-[13px] font-black leading-4">
                     {isChinese ? conciergeNameZh : conciergeNameEn}
                   </h2>
                 </div>
-                <p className="mt-0.5 line-clamp-1 text-[11px] font-semibold text-slate-300">
+                <p className="mt-0.5 line-clamp-1 text-[10px] font-semibold text-slate-300">
                   {isDashScopeSource(lastSource)
                     ? isChinese
                       ? '礼宾模型在线，支持多轮自然语言核算'
@@ -588,11 +588,11 @@ export default function MobileConciergeAgent() {
               {summaryModules.map((item) => {
                 const Icon = item.icon;
                 return (
-                  <div key={item.label} className="flex min-w-0 flex-1 items-center gap-1.5 rounded-lg border border-white/12 bg-white/8 px-2 py-1.5">
-                    <Icon size={13} className="shrink-0 text-[#7dd3fc]" />
+                  <div key={item.label} className="flex min-w-0 flex-1 items-center gap-1.5 rounded-lg border border-white/12 bg-white/8 px-2 py-1.5 md:px-1.5 md:py-1">
+                    <Icon size={12} className="shrink-0 text-[#7dd3fc]" />
                     <div className="min-w-0">
-                      <div className="truncate text-[9px] font-semibold leading-3 text-slate-300">{item.label}</div>
-                      <div className="truncate text-xs font-black leading-4 text-white">{item.value}</div>
+                      <div className="truncate text-[9px] font-semibold leading-3 text-slate-300 md:text-[8px]">{item.label}</div>
+                      <div className="truncate text-[11px] font-black leading-4 text-white">{item.value}</div>
                     </div>
                   </div>
                 );
@@ -600,26 +600,26 @@ export default function MobileConciergeAgent() {
             </div>
           </div>
 
-          <div className="min-h-0 flex-1 overflow-y-auto px-4 py-2.5">
-            <div className="mb-2.5 rounded-2xl border border-[#d7e1ec] bg-[#ffffff] p-2.5 shadow-sm">
+          <div className="min-h-0 flex-1 overflow-y-auto px-4 py-2.5 md:px-3 md:py-2">
+            <div className="mb-2.5 rounded-2xl border border-[#d7e1ec] bg-[#ffffff] p-2.5 shadow-sm md:mb-2 md:rounded-xl md:p-2">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <div className="text-[11px] font-semibold text-[#64748b]">
                     {isChinese ? '当前推荐' : 'Current recommendation'}
                   </div>
-                  <div className="mt-0.5 truncate text-sm font-black">{plan.packageName}</div>
-                  <p className="mt-0.5 line-clamp-1 text-[11px] font-semibold leading-5 text-[#52627a]">{plan.summary}</p>
+                  <div className="mt-0.5 truncate text-[13px] font-black leading-4">{plan.packageName}</div>
+                  <p className="mt-0.5 line-clamp-1 text-[10px] font-semibold leading-4 text-[#52627a]">{plan.summary}</p>
                 </div>
-                <div className="shrink-0 rounded-xl bg-[#eaf1fb] px-3 py-1.5 text-center">
+                <div className="shrink-0 rounded-xl bg-[#eaf1fb] px-2.5 py-1.5 text-center">
                   <div className="text-[10px] font-black text-[#0b5fff]">{plan.airportCode}</div>
-                  <div className="text-sm font-black text-[#071632]">¥{plan.packagePrice}</div>
+                  <div className="text-[13px] font-black leading-4 text-[#071632]">¥{plan.packagePrice}</div>
                 </div>
               </div>
               <div className="mt-2 flex gap-2">
                 <button
                   type="button"
                   onClick={createConciergeOrder}
-                  className="flex h-9 flex-1 items-center justify-center gap-2 rounded-xl bg-[#f97316] px-3 text-xs font-black text-white shadow-lg shadow-orange-600/20 active:scale-[0.98]"
+                  className="flex h-8 flex-1 items-center justify-center gap-2 rounded-xl bg-[#f97316] px-3 text-[12px] font-black text-white shadow-lg shadow-orange-600/20 active:scale-[0.98]"
                 >
                   <TicketCheck size={15} />
                   <span>{isChinese ? '按此方案下单' : 'Order this plan'}</span>
@@ -627,7 +627,7 @@ export default function MobileConciergeAgent() {
                 <Link
                   href="/search"
                   onClick={() => setIsOpen(false)}
-                  className="flex h-9 w-10 shrink-0 items-center justify-center rounded-xl border border-[#d7e1ec] bg-[#ffffff] text-[#0b5fff]"
+                  className="flex h-8 w-9 shrink-0 items-center justify-center rounded-xl border border-[#d7e1ec] bg-[#ffffff] text-[#0b5fff]"
                   aria-label={isChinese ? '打开手动预订' : 'Open manual booking'}
                 >
                   <ExternalLink size={16} />
@@ -635,10 +635,10 @@ export default function MobileConciergeAgent() {
               </div>
             </div>
 
-            <div className="mb-2.5 rounded-2xl border border-[#d7e1ec] bg-[#ffffff] p-2.5 shadow-sm">
+            <div className="mb-2.5 rounded-2xl border border-[#d7e1ec] bg-[#ffffff] p-2.5 shadow-sm md:mb-2 md:rounded-xl md:p-2">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <div className="text-xs font-black text-[#0b5fff]">
+                  <div className="text-[11px] font-black text-[#0b5fff]">
                     {isChinese ? '业务关键节点' : 'Business checkpoints'}
                   </div>
                   <p className="mt-0.5 line-clamp-1 text-[10px] font-semibold leading-4 text-[#64748b]">
@@ -651,7 +651,7 @@ export default function MobileConciergeAgent() {
                   <Link
                     href={`/journey?id=${currentOrder.orderId}`}
                     onClick={() => setIsOpen(false)}
-                    className="shrink-0 rounded-xl bg-[#06152c] px-3 py-2 text-[10px] font-black text-white"
+                    className="shrink-0 rounded-xl bg-[#06152c] px-2.5 py-1.5 text-[10px] font-black text-white"
                   >
                     {currentOrder.orderId}
                   </Link>
@@ -659,7 +659,7 @@ export default function MobileConciergeAgent() {
               </div>
 
               {currentOrder ? (
-                <div className="mt-2 rounded-xl border border-[#d7e1ec] bg-[#f8fafc] px-3 py-1.5 text-[11px] font-black text-[#334155]">
+                <div className="mt-2 rounded-xl border border-[#d7e1ec] bg-[#f8fafc] px-3 py-1.5 text-[10px] font-black text-[#334155]">
                   {statusLabel(currentOrder.status, isChinese)}
                 </div>
               ) : null}
@@ -672,7 +672,7 @@ export default function MobileConciergeAgent() {
                       key={action.id}
                       type="button"
                       onClick={() => runBusinessAction(action.id)}
-                      className={`min-h-11 rounded-xl border px-2 py-1.5 text-left active:scale-[0.98] ${action.className}`}
+                      className={`min-h-10 rounded-xl border px-2 py-1.5 text-left active:scale-[0.98] ${action.className}`}
                     >
                       <div className="flex items-center gap-1 text-[10px] font-black">
                         <Icon size={13} className="shrink-0" />
@@ -691,7 +691,7 @@ export default function MobileConciergeAgent() {
                 return (
                   <div key={message.id} className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
                     <div
-                      className={`max-w-[84%] rounded-2xl px-3 py-2 text-sm font-medium leading-relaxed ${
+                      className={`max-w-[84%] rounded-2xl px-3 py-2 text-[12px] font-medium leading-5 ${
                         isUser
                           ? 'rounded-br-md bg-[#0b5fff] text-white'
                           : 'rounded-bl-md border border-[#d7e1ec] bg-[#ffffff] text-[#17223a]'
@@ -709,7 +709,7 @@ export default function MobileConciergeAgent() {
               })}
               {isAsking && (
                 <div className="flex justify-start">
-                  <div className="rounded-2xl rounded-bl-md border border-[#d7e1ec] bg-[#ffffff] px-3 py-2 text-sm font-black text-[#52627a]">
+                  <div className="rounded-2xl rounded-bl-md border border-[#d7e1ec] bg-[#ffffff] px-3 py-2 text-[12px] font-black leading-5 text-[#52627a]">
                     {isChinese ? '中转礼遇助手正在核算方案...' : 'DragonPass Concierge is calculating...'}
                   </div>
                 </div>
@@ -718,7 +718,7 @@ export default function MobileConciergeAgent() {
             </div>
           </div>
 
-          <div className="border-t border-[#d7e1ec] bg-[#ffffff] px-4 pb-[calc(env(safe-area-inset-bottom)+10px)] pt-2.5">
+          <div className="border-t border-[#d7e1ec] bg-[#ffffff] px-4 pb-[calc(env(safe-area-inset-bottom)+10px)] pt-2.5 md:px-3 md:pb-3 md:pt-2">
             <div className="concierge-quick-replies mb-2 flex gap-2 overflow-x-auto pb-1">
               {quickReplies.map((reply) => (
                 <button
@@ -727,7 +727,7 @@ export default function MobileConciergeAgent() {
                   onClick={() =>
                     /下单|Create my order/i.test(reply) ? runBusinessAction('order') : void askConcierge(reply)
                   }
-                  className="shrink-0 rounded-full border border-[#d7e1ec] bg-[#f1f6fb] px-3 py-1.5 text-xs font-black text-[#0f3e86] active:scale-[0.98]"
+                  className="shrink-0 rounded-full border border-[#d7e1ec] bg-[#f1f6fb] px-2.5 py-1.5 text-[11px] font-black text-[#0f3e86] active:scale-[0.98]"
                 >
                   {reply}
                 </button>
@@ -739,7 +739,7 @@ export default function MobileConciergeAgent() {
                 onChange={(event) => setInputValue(event.target.value)}
                 rows={1}
                 placeholder={isChinese ? '问中转礼遇助手：机场、时长、行李、预算...' : 'Ask DragonPass Concierge: airport, bags, budget...'}
-                className="max-h-20 min-h-10 flex-1 resize-none rounded-2xl border border-[#d7e1ec] bg-[#f8fafc] px-3 py-2.5 text-sm font-semibold text-[#071632] outline-none focus:border-[#0b5fff]"
+                className="max-h-20 min-h-10 flex-1 resize-none rounded-2xl border border-[#d7e1ec] bg-[#f8fafc] px-3 py-2.5 text-[12px] font-semibold leading-5 text-[#071632] outline-none focus:border-[#0b5fff]"
               />
               <button
                 type="submit"

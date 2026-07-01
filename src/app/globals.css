@@ -142,7 +142,7 @@ button,
 input,
 select,
 textarea {
-  font: inherit;
+  font-family: inherit;
 }
 
 button,
@@ -247,19 +247,27 @@ textarea:focus-visible {
 
 @media (min-width: 768px) {
   .concierge-launcher {
-    left: 1.5rem;
-    right: auto;
+    left: auto;
+    right: 1.5rem;
     bottom: 1.5rem;
-    width: min(420px, calc(100vw - 3rem));
+    width: min(360px, calc(100vw - 3rem));
   }
 
   .concierge-dialog {
-    left: 1.5rem;
-    right: auto;
+    left: auto;
+    right: 1.5rem;
     bottom: 1.5rem;
-    width: min(440px, calc(100vw - 3rem));
-    height: min(82dvh, 620px);
-    max-height: min(720px, calc(100dvh - 3rem));
+    width: min(380px, calc(100vw - 3rem));
+    height: min(72dvh, 560px);
+    max-height: min(620px, calc(100dvh - 3rem));
+  }
+}
+
+@media (min-width: 1180px) {
+  .concierge-launcher,
+  .concierge-dialog {
+    right: 2rem;
+    bottom: 2rem;
   }
 }
 

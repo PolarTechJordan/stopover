@@ -1,11 +1,17 @@
 # 龙腾中转礼遇 Stopover Web Demo
 
-<p align="center">
-  <a href="#中文版本"><img src="docs/assets/button-zh.svg" alt="中文版本" /></a>
-  <a href="#english-version"><img src="docs/assets/button-en.svg" alt="English Version" /></a>
-</p>
+<a id="top"></a>
 
-![DragonPass Stopover hero](docs/assets/stopover-hero.svg)
+<div align="center">
+  <img src="docs/assets/stopover-hero.svg" alt="DragonPass Stopover Concierge hero" width="100%" />
+  <br />
+  <br />
+  <a href="#中文版本"><img src="docs/assets/button-zh.svg" alt="进入中文版本" width="248" /></a>
+  &nbsp;&nbsp;
+  <a href="#english-version"><img src="docs/assets/button-en.svg" alt="Open English Version" width="248" /></a>
+  <br />
+  <sub>GitHub README-safe HTML: image buttons jump to the selected language section.</sub>
+</div>
 
 ---
 
@@ -235,9 +241,11 @@ npm run dev -- -p 3000
 - 中文/英文、亮色/暗色、文字尺度切换可用并持久化。
 - `npm run build` 通过。
 
-<p align="center">
-  <a href="#english-version"><img src="docs/assets/button-en.svg" alt="Switch to English" /></a>
-</p>
+<div align="center">
+  <a href="#top">回到顶部</a>
+  ·
+  <a href="#english-version"><img src="docs/assets/button-en.svg" alt="Switch to English" width="220" /></a>
+</div>
 
 ---
 
@@ -246,6 +254,8 @@ npm run dev -- -p 3000
 ### 1. Product Positioning
 
 `mystopover` is a hackathon / product-review web demo for stopover services. It combines AI concierge, package matching, RFID baggage custody and missed-flight assurance to turn a **6-48h airport layover** into a purchasable, trackable mini-destination experience.
+
+![English Stopover dashboard screenshot](docs/assets/screenshots/stopover-home-en.png)
 
 > Users are not buying sightseeing; they are buying certainty across baggage, timing, route guidance and disruption protection.
 
@@ -256,7 +266,7 @@ npm run dev -- -p 3000
 
 ### 2. 5-Minute Hackathon Demo Flow
 
-![Stopover five-step flow](docs/assets/stopover-demo-flow.svg)
+![English stopover search screenshot](docs/assets/screenshots/stopover-search-en.png)
 
 | Step | Page | Demo Focus |
 | --- | --- | --- |
@@ -267,8 +277,6 @@ npm run dev -- -p 3000
 | 5 | `/journey` | Fast-forward the state machine to show baggage return, city micro-tour and disruption assurance. |
 
 ### 3. Package Matrix
-
-![Stopover package matrix](docs/assets/stopover-package-matrix.svg)
 
 | Package | Duration | Core Benefits | Demo Role |
 | --- | --- | --- | --- |
@@ -467,6 +475,8 @@ Current `next.config.ts` settings:
 - Language, theme and text-scale preferences work and persist.
 - `npm run build` passes.
 
-<p align="center">
-  <a href="#中文版本"><img src="docs/assets/button-zh.svg" alt="切换到中文" /></a>
-</p>
+<div align="center">
+  <a href="#top">Back to top</a>
+  ·
+  <a href="#中文版本"><img src="docs/assets/button-zh.svg" alt="切换到中文" width="220" /></a>
+</div>
