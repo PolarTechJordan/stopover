@@ -785,17 +785,14 @@ function PhonePreview({ copy }: { copy: DashboardCopy }) {
           <div className="space-y-3 p-3">
             <div className="rounded-lg border border-[#d7e1ec] bg-[#ffffff] p-3">
               <div className="mb-2 text-xs font-black">{copy.recommendedTitle}</div>
-              <div className="grid grid-cols-[86px_minmax(0,1fr)] gap-3">
+              <div className="flex items-center gap-3">
                 <div
-                  className="h-96 max-h-28 rounded bg-cover bg-center"
+                  className="h-20 w-20 shrink-0 rounded bg-cover bg-center"
                   style={{ backgroundImage: `url(${loungeImage})` }}
                 />
-                <div className="min-w-0">
-                  <div className="text-sm font-black leading-tight">{copy.packageName}</div>
-                  <div className="mt-2 text-base font-black">{copy.packagePrice}</div>
-                  <Link href="/packages?id=case-10h" className="mt-3 flex h-9 items-center justify-center rounded bg-[#f97316] text-xs font-black text-white">
-                    {copy.viewOrder.replace(' & ', ' &\u00a0')}
-                  </Link>
+                <div className="flex flex-col justify-center min-w-0">
+                  <div className="text-sm font-black leading-tight text-[#071632]">{copy.packageName}</div>
+                  <div className="mt-1.5 text-base font-black text-[#071632]">{copy.packagePrice}</div>
                 </div>
               </div>
             </div>
