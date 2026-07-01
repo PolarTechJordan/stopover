@@ -11,7 +11,7 @@ import { STOP_OVER_PRD } from '@/lib/prdRules';
 import type { AddonSku } from '@/lib/types';
 import type { LanguageCode } from '@/lib/appPreferences';
 
-export const runtime = 'nodejs';
+export const runtime = 'edge';
 export const dynamic = 'force-dynamic';
 
 interface ConciergeRequest {
