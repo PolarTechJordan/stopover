@@ -185,7 +185,7 @@ export default function PitchPage() {
           className="absolute inset-0 bg-cover bg-center opacity-28"
           style={{
             backgroundImage:
-              'url(https://images.unsplash.com/photo-1569154941061-e231b4725ef1?auto=format&fit=crop&q=80&w=1800)',
+              'url(https://images.unsplash.com/photo-1569154941061-e231b4725ef1?auto=format&fit=crop&q=50&w=1200&fm=webp)',
           }}
         />
         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(2,6,23,0.98)_0%,rgba(15,23,42,0.82)_46%,rgba(15,23,42,0.5)_100%)] lg:bg-[linear-gradient(90deg,rgba(2,6,23,0.98),rgba(15,23,42,0.76),rgba(15,23,42,0.42))]" />

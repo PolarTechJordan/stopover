@@ -294,7 +294,7 @@ const navIcons = [Home, Plane, BriefcaseBusiness, FileText];
 const statIcons = [Star, Globe2, Building2, Clock3];
 
 const loungeImage =
-  'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&q=80&w=900';
+  'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&q=50&w=300&fm=webp';
 
 export default function StopoverDashboard() {
   const { language, theme, textScale, toggleLanguage, toggleTheme, cycleTextScale } = useAppPreferences();

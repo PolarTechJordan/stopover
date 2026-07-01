@@ -133,7 +133,7 @@ export const useOrderStore = create<OrderState>()(
           pickupAt: dayjs(arrivalFlight.arrivalTime).toISOString(),
           currentLocation: selectedAirport.nameZh + ' - 待收件',
           status: 'received' as const,
-          photoUrl: 'https://images.unsplash.com/photo-1581553680321-4fffae59fccd?auto=format&fit=crop&q=80&w=600',
+          photoUrl: 'https://images.unsplash.com/photo-1581553680321-4fffae59fccd?auto=format&fit=crop&q=50&w=200&fm=webp',
           history: [
             {
               status: 'received',
@@ -408,7 +408,7 @@ export function getMockOrderForCaseId(caseId: string): StopoverOrder | null {
     pickupAt: dayjs(arrivalFlight.arrivalTime).toISOString(),
     currentLocation: airport.nameZh + (sku === 'overnight' ? ' - 酒店送达' : ' - 贵宾厅托管'),
     status: sku === 'overnight' ? 'at_hotel' : 'at_lounge',
-    photoUrl: 'https://images.unsplash.com/photo-1581553680321-4fffae59fccd?auto=format&fit=crop&q=80&w=600',
+    photoUrl: 'https://images.unsplash.com/photo-1581553680321-4fffae59fccd?auto=format&fit=crop&q=50&w=200&fm=webp',
     history: [
       {
         status: 'received',
