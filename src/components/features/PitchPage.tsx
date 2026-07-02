@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import Link from 'next/link';
 import {
   BadgeCheck,
@@ -213,6 +214,31 @@ const enCopy: PitchCopy = {
 export default function PitchPage() {
   const { language } = useAppPreferences();
   const copy = language === 'zh-CN' ? zhCopy : enCopy;
+
+  useEffect(() => {
+    const root = document.documentElement;
+    const prevTheme = root.dataset.theme;
+
+    // Force light theme on this page so dark mode overrides do not apply
+    root.dataset.theme = 'light';
+    root.style.colorScheme = 'light';
+
+    const observer = new MutationObserver(() => {
+      if (root.dataset.theme === 'dark') {
+        root.dataset.theme = 'light';
+        root.style.colorScheme = 'light';
+      }
+    });
+    observer.observe(root, { attributes: true, attributeFilter: ['data-theme'] });
+
+    return () => {
+      observer.disconnect();
+      if (prevTheme) {
+        root.dataset.theme = prevTheme;
+        root.style.colorScheme = prevTheme;
+      }
+    };
+  }, []);
 
   return (
     <div className="bg-slate-950 text-white">
@@ -485,7 +511,7 @@ export default function PitchPage() {
             {/* Timeline in black card */}
             <div className="relative pl-6 space-y-6 before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-[2px] before:bg-slate-100">
               <div className="relative">
-                <div className="absolute left-[-20px] top-1.5 w-3 h-3 rounded-full bg-blue-600 border-4 border-slate-100" />
+                <div className="absolute left-[-18px] top-1.5 w-3 h-3 rounded-full bg-blue-600 border-4 border-slate-100" />
                 <div className="text-xs font-bold text-slate-900">
                   {language === 'zh-CN' ? '收件登记' : 'Baggage Registered'}
                 </div>
@@ -494,7 +520,8 @@ export default function PitchPage() {
                 </div>
               </div>
               <div className="relative">
-                <div className="absolute left-[-20px] top-1.5 w-3 h-3 rounded-full bg-amber-500 border-4 border-slate-100 animate-ping" />
+                <div className="absolute left-[-18px] top-1.5 w-3 h-3 rounded-full bg-amber-500 border-4 border-slate-100" />
+                <div className="absolute left-[-18px] top-1.5 w-3 h-3 rounded-full bg-amber-500 border-4 border-slate-100 animate-ping" />
                 <div className="text-xs font-bold text-amber-600">
                   {language === 'zh-CN' ? '转运中' : 'In Transit'}
                 </div>
@@ -503,7 +530,7 @@ export default function PitchPage() {
                 </div>
               </div>
               <div className="relative">
-                <div className="absolute left-[-20px] top-1.5 w-3 h-3 rounded-full bg-slate-100 border-4 border-white" />
+                <div className="absolute left-[-18px] top-1.5 w-3 h-3 rounded-full bg-slate-100 border-4 border-slate-100" />
                 <div className="text-xs font-bold text-slate-400">
                   {language === 'zh-CN' ? '已送达贵宾厅' : 'Delivered to Lounge'}
                 </div>
