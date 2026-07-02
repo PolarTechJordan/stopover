@@ -14,6 +14,7 @@ export default function AppChrome({ children }: { children: React.ReactNode }) {
   const { language } = useAppPreferences();
   const pathname = usePathname();
   const isDashboard = pathname === '/dashborad' || pathname === '/dashboard';
+  const isLandingPage = pathname === '/' || pathname === '/pitch';
 
   return (
     <div className="flex min-h-full flex-col">
@@ -54,7 +55,7 @@ export default function AppChrome({ children }: { children: React.ReactNode }) {
         </div>
       </header>}
 
-      <main className="flex min-h-0 min-w-0 flex-1 flex-col pb-24 md:pb-0">{children}</main>
+      <main className={`flex min-h-0 min-w-0 flex-1 flex-col md:pb-0 ${isLandingPage ? 'pb-0' : 'pb-24'}`}>{children}</main>
 
       {!isDashboard && <footer className="hidden border-t border-slate-800 bg-slate-950 px-6 py-8 text-center text-xs text-slate-400 md:block">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 md:flex-row">
