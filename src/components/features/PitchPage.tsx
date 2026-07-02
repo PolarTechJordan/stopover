@@ -403,6 +403,124 @@ export default function PitchPage() {
           </div>
         </section>
 
+        {/* Dynamic Scenarios Visual section */}
+      <section className="py-16 px-6 bg-slate-50 text-slate-950 border-t border-slate-200/60">
+        <div className="max-w-5xl mx-auto w-full flex flex-col md:flex-row items-center gap-12">
+          <div className="flex-1">
+            <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-600 px-3.5 py-1.5 rounded-full text-xs font-black mb-4">
+              <Compass size={12} className="animate-spin text-blue-600" />
+              <span>{language === 'zh-CN' ? '流程控制与演示模拟' : 'Flow Control & Simulation'}</span>
+            </div>
+            <h2 className="text-3xl font-extrabold mb-4 text-slate-900">
+              {language === 'zh-CN' ? '极速演示模式 (Fast-Forward)' : 'Fast-Forward Demo Mode'}
+            </h2>
+            <p className="text-slate-500 text-sm leading-relaxed mb-6 font-medium">
+              {language === 'zh-CN' 
+                ? '在实际中，行李在贵宾室寄存、城市游等要耗费 6-24 小时。为方便评审与验证，我们在订单管理和跟踪页嵌入了 **快速演示控制台**。' 
+                : 'In reality, lounge custody and city tours take 6–24 hours. For easy review and verification, we embedded a Fast-Forward Control Panel in the tracking page.'}
+            </p>
+            <div className="space-y-4 text-left">
+              <div className="flex items-start gap-3">
+                <div className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center text-xs font-bold text-white mt-1 shrink-0">1</div>
+                <div>
+                  <h4 className="text-xs font-bold text-slate-900">
+                    {language === 'zh-CN' ? '模拟提交航班与套餐：' : 'Submit Flight & Package:'}
+                  </h4>
+                  <p className="text-[11px] text-slate-505 mt-0.5 font-medium">
+                    {language === 'zh-CN' 
+                      ? '自定中转小时数（如 12 小时），系统将生成对应的 RFID 行李电子标签和旅游行程表。' 
+                      : 'Set custom layover hours to generate RFID tags and stopover itineraries.'}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center text-xs font-bold text-white mt-1 shrink-0">2</div>
+                <div>
+                  <h4 className="text-xs font-bold text-slate-900">
+                    {language === 'zh-CN' ? '物理操作一键驱动：' : 'One-Click Verification:'}
+                  </h4>
+                  <p className="text-[11px] text-slate-505 mt-0.5 font-medium">
+                    {language === 'zh-CN' 
+                      ? '控制台中可一键完成“交付行李”、“行李到达贵宾厅”。无需漫长等待即可流转状态。' 
+                      : 'Use the console to instantly trigger actions like bag drop-off or lounge delivery.'}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center text-xs font-bold text-white mt-1 shrink-0">3</div>
+                <div>
+                  <h4 className="text-xs font-bold text-slate-900">
+                    {language === 'zh-CN' ? '模拟意外误机：' : 'Simulate Missed Connection:'}
+                  </h4>
+                  <p className="text-[11px] text-slate-505 mt-0.5 font-medium">
+                    {language === 'zh-CN' 
+                      ? '可一键模拟旅客在城市游中堵车或超时导致将要误机，触发 VIP 安检与改签紧急保障机制。' 
+                      : 'Trigger traffic jams to simulate missed connections, testing rebooking and VIP security.'}
+                  </p>
+                </div>
+              </div>
+            </div>
+            <Link 
+              href="/search"
+              className="inline-block mt-8 px-6 py-3 bg-blue-600 text-white font-bold rounded-xl text-xs hover:bg-blue-700 transition-colors shadow-lg shadow-blue-500/20"
+            >
+              {language === 'zh-CN' ? '进入 Demo 演示' : 'Enter Demo Sandbox'}
+            </Link>
+          </div>
+          
+          <div className="flex-1 w-full max-w-sm bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xl relative overflow-hidden text-left text-slate-900">
+            {/* Visual mock order */}
+            <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
+              <div className="flex items-center gap-2">
+                <span className="text-xs">🧳</span>
+                <span className="text-xs font-black text-slate-800">
+                  {language === 'zh-CN' ? '行李智能追踪 (RFID)' : 'Baggage Tracking (RFID)'}
+                </span>
+              </div>
+              <span className="text-[10px] bg-amber-500/10 text-amber-600 border border-amber-500/20 px-2 py-0.5 rounded-full font-bold">
+                {language === 'zh-CN' ? '转运中 (In Transit)' : 'In Transit'}
+              </span>
+            </div>
+
+            {/* Timeline in black card */}
+            <div className="relative pl-6 space-y-6 before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-[2px] before:bg-slate-100">
+              <div className="relative">
+                <div className="absolute left-[-20px] top-1.5 w-3 h-3 rounded-full bg-blue-600 border-4 border-slate-100" />
+                <div className="text-xs font-bold text-slate-900">
+                  {language === 'zh-CN' ? '收件登记' : 'Baggage Registered'}
+                </div>
+                <div className="text-[10px] text-slate-500 font-medium">
+                  {language === 'zh-CN' ? '新加坡樟宜机场 T1 柜台已打包贴标' : 'Labeled at Changi Airport T1 counter'}
+                </div>
+              </div>
+              <div className="relative">
+                <div className="absolute left-[-20px] top-1.5 w-3 h-3 rounded-full bg-amber-500 border-4 border-slate-100 animate-ping" />
+                <div className="text-xs font-bold text-amber-600">
+                  {language === 'zh-CN' ? '转运中' : 'In Transit'}
+                </div>
+                <div className="text-[10px] text-slate-500 font-medium">
+                  {language === 'zh-CN' ? '行李进入快速内部传送皮带，前往贵宾厅' : 'Baggage moving to lounge via conveyor belt'}
+                </div>
+              </div>
+              <div className="relative">
+                <div className="absolute left-[-20px] top-1.5 w-3 h-3 rounded-full bg-slate-100 border-4 border-white" />
+                <div className="text-xs font-bold text-slate-400">
+                  {language === 'zh-CN' ? '已送达贵宾厅' : 'Delivered to Lounge'}
+                </div>
+                <div className="text-[10px] text-slate-400 font-medium">
+                  {language === 'zh-CN' ? '等待旅客中转后认领' : 'Waiting for traveler pickup'}
+                </div>
+              </div>
+            </div>
+            
+            <div className="mt-6 bg-slate-50 border border-slate-100 rounded-xl p-3 text-[11px] font-medium">
+              <span className="text-slate-500 block">{language === 'zh-CN' ? '实时定位：' : 'Real-time GPS:'}</span>
+              <span className="text-slate-800 font-mono block font-bold mt-0.5">T1 Lounge Depot Zone C-4</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
         {/* Flagship Hub Airports */}
         <section className="py-16 px-6 border-t border-slate-100 text-slate-950">
           <div className="max-w-6xl mx-auto w-full">
@@ -452,106 +570,6 @@ export default function PitchPage() {
           </div>
         </section>
       </div>
-
-      {/* Dynamic Scenarios Visual section */}
-      <section className="py-16 px-6 bg-slate-900 text-white">
-        <div className="max-w-5xl mx-auto w-full flex flex-col md:flex-row items-center gap-12">
-          <div className="flex-1">
-            <div className="inline-flex items-center gap-2 bg-white/10 text-white px-3 py-1 rounded-full text-xs font-semibold mb-4">
-              <Compass size={12} className="animate-spin text-blue-200" />
-              <span>{language === 'zh-CN' ? '流程控制与演示模拟' : 'Flow Control & Simulation'}</span>
-            </div>
-            <h2 className="text-3xl font-bold mb-4">
-              {language === 'zh-CN' ? '极速演示模式 (Fast-Forward)' : 'Fast-Forward Demo Mode'}
-            </h2>
-            <p className="text-slate-400 text-xs leading-relaxed mb-6 font-medium">
-              {language === 'zh-CN' 
-                ? '在实际中，行李在贵宾室寄存、城市游等要耗费 6-24 小时。为方便评审与验证，我们在订单管理和跟踪页嵌入了 **快速演示控制台**。' 
-                : 'In reality, lounge custody and city tours take 6–24 hours. For easy review and verification, we embedded a Fast-Forward Control Panel in the tracking page.'}
-            </p>
-            <div className="space-y-4 text-left">
-              <div className="flex items-start gap-3">
-                <div className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center text-xs font-bold text-white mt-1 shrink-0">1</div>
-                <div>
-                  <h4 className="text-xs font-bold">
-                    {language === 'zh-CN' ? '模拟提交航班与套餐：' : 'Submit Flight & Package:'}
-                  </h4>
-                  <p className="text-[11px] text-slate-400 mt-0.5 font-medium">
-                    {language === 'zh-CN' 
-                      ? '自定中转小时数（如 12 小时），系统将生成对应的 RFID 行李电子标签和旅游行程表。' 
-                      : 'Set custom layover hours to generate RFID tags and stopover itineraries.'}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center text-xs font-bold text-white mt-1 shrink-0">2</div>
-                <div>
-                  <h4 className="text-xs font-bold">
-                    {language === 'zh-CN' ? '物理操作一键驱动：' : 'One-Click Verification:'}
-                  </h4>
-                  <p className="text-[11px] text-slate-400 mt-0.5 font-medium">
-                    {language === 'zh-CN' 
-                      ? '控制台中可一键完成“交付行李”、“行李到达贵宾厅”。无需漫长等待即可流转状态。' 
-                      : 'Use the console to instantly trigger actions like bag drop-off or lounge delivery.'}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center text-xs font-bold text-white mt-1 shrink-0">3</div>
-                <div>
-                  <h4 className="text-xs font-bold">模拟意外误机：</h4>
-                  <p className="text-[11px] text-slate-400 mt-0.5">可一键模拟旅客在城市游中堵车或超时导致将要误机，触发 VIP 安检与改签紧急保障机制。</p>
-                </div>
-              </div>
-            </div>
-            <Link 
-              href="/search"
-              className="inline-block mt-8 px-6 py-3 bg-blue-600 text-white font-bold rounded-xl text-xs hover:bg-blue-700 transition-colors shadow-lg shadow-blue-500/20"
-            >
-              进入 Demo 演示
-            </Link>
-          </div>
-          
-          <div className="flex-1 w-full max-w-sm bg-white/5 rounded-3xl p-6 border border-white/10 shadow-2xl relative overflow-hidden text-left">
-            {/* Visual mock order */}
-            <div className="flex items-center justify-between border-b border-white/10 pb-4 mb-4">
-              <div className="flex items-center gap-2">
-                <span className="text-xs">🧳</span>
-                <span className="text-xs font-bold">行李智能追踪 (RFID)</span>
-              </div>
-              <span className="text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded-full">
-                转运中 (In Transit)
-              </span>
-            </div>
-
-            {/* Timeline in black card */}
-            <div className="relative pl-6 space-y-6 before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-[2px] before:bg-white/10">
-              <div className="relative">
-                <div className="absolute left-[-20px] top-1.5 w-3 h-3 rounded-full bg-blue-600 border-4 border-white/30" />
-                <div className="text-xs font-bold text-white">收件登记</div>
-                <div className="text-[10px] text-slate-400">新加坡樟宜机场 T1 柜台已打包贴标</div>
-              </div>
-              <div className="relative">
-                <div className="absolute left-[-20px] top-1.5 w-3 h-3 rounded-full bg-amber-500 border-4 border-white/30 animate-ping" />
-                <div className="text-xs font-bold text-amber-400">转运中</div>
-                <div className="text-[10px] text-slate-400">行李进入快速内部传送皮带，前往贵宾厅</div>
-              </div>
-              <div className="relative">
-                <div className="absolute left-[-20px] top-1.5 w-3 h-3 rounded-full bg-white/20" />
-                <div className="text-xs font-bold text-slate-500">已送达贵宾厅</div>
-                <div className="text-[10px] text-slate-600">等待旅客中转后认领</div>
-              </div>
-            </div>
-            
-            <div className="mt-6 bg-white/5 border border-white/10 rounded-xl p-3 text-[11px]">
-              <span className="text-slate-400 block">实时定位：</span>
-              <span className="text-white font-mono block font-semibold mt-0.5">T1 Lounge Depot Zone C-4</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-
     </div>
   );
 }
