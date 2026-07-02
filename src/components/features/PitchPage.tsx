@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import OpenConciergeButton from '@/components/features/OpenConciergeButton';
 import { useAppPreferences } from './AppPreferenceProvider';
+import { localizePackage, localizeAirport } from '@/lib/appPreferences';
 import { airports, packages } from '@/lib/mockData';
 
 type PitchCopy = {
@@ -36,7 +37,7 @@ type PitchCopy = {
   enterDashboard: string;
   safetyBanner: string;
   certaintyTitle: string;
-  painPoints: Array<{ title: string; body: string }>;
+  painPoints: Array<{ title: string; body: string; solution: string }>;
   solutionTitle: string;
   solutionSubline: string;
   solutionFlow: Array<{ title: string; body: string }>;
@@ -75,10 +76,26 @@ const zhCopy: PitchCopy = {
   safetyBanner: '龙腾中转礼遇把返程缓冲、VIP 安检、误机改签和行李保险打包成可跟踪的信任底座。',
   certaintyTitle: '旅客买的不是旅游，是确定性',
   painPoints: [
-    { title: '时间焦虑', body: '6-48 小时不知道怎么安排，纯等候体验差。' },
-    { title: '行李焦虑', body: '拖箱出机场麻烦，想消费也走不远。' },
-    { title: '决策焦虑', body: '陌生城市缺攻略，路线和语言都有风险。' },
-    { title: '误机焦虑', body: '一旦堵车误机，旅客要独自承担后果。' },
+    {
+      title: '1. 时间焦虑',
+      body: '漫长中转等候期无休闲消遣，候机大厅拥挤嘈杂；旅客有意出境短途游览，却因陌生路线、语言不通、担心错过航班等多重顾虑不敢离港。',
+      solution: '对策：标准化推出 4/8/12 小时分时段专属城市路线，全程专人向导、一价全包，旅客无需自行做行程攻略。',
+    },
+    {
+      title: '2. 随身行李焦虑',
+      body: '中转需反复提取、二次托运大件行李流程繁琐；随身拖拽登机箱游览耗损体力，大幅降低旅客外出游玩、线下消费意愿。',
+      solution: '对策：中转柜台一键行李全托管，依托 RFID 物联网实时定位追踪；实现人包分离，行李直达贵宾厅或中转酒店，AI 智能弹窗实时推送行李动态提醒。',
+    },
+    {
+      title: '3. 决策焦虑',
+      body: '停留时长有限，旅客难以快速匹配贴合自身预算、喜好、剩余登机时间的出行方案，选择成本高、纠结内耗严重。',
+      solution: '对策：专属 AI 礼遇智能对话机器人，一键同步航班剩余时长、行李状态、出行偏好；自动分层推荐轻量化 / 深度游玩、休息休憩、免税购物三类方案，实时调整行程，一站式敲定全部中转安排，消除选择内耗。',
+    },
+    {
+      title: '4. 误机安全焦虑',
+      body: '外出游览遭遇路面拥堵、行程延误、向导衔接失误等突发状况，一旦误机损失全由旅客自行承担，是旅客不敢出境中转游览的核心顾虑。',
+      solution: '对策：系统实时前置抓取航班动态，行程全程预留弹性缓冲时长，专人全程把控返程节点；配套专属中转误机保障险，若因我方服务问题造成误机，支持极速核验、即时理赔，彻底打消航班延误后顾之忧。',
+    },
   ],
   solutionTitle: '产品解法：一个 AI 入口，三层履约能力',
   solutionSubline: 'AI 让用户不用学习菜单，状态机让运营不靠口头承诺。评委看到的是酷炫对话卡片，业务真正卖的是可控的机场服务编排。',
@@ -137,10 +154,26 @@ const enCopy: PitchCopy = {
   safetyBanner: 'DragonPass Stopover packages return buffers, VIP security, rebooking assistance, and baggage insurance into a trackable trust framework.',
   certaintyTitle: "Travelers don't buy tours, they buy certainty",
   painPoints: [
-    { title: 'Time Anxiety', body: 'Unsure how to spend 6–48 hours, leading to a poor waiting experience.' },
-    { title: 'Baggage Anxiety', body: 'Dragging bags out of the airport is a hassle, limiting local spending.' },
-    { title: 'Decision Anxiety', body: 'Lack of local guide in an unfamiliar city poses route and language risks.' },
-    { title: 'Missed-flight Anxiety', body: 'Travelers bear all consequences if traffic delays cause a missed flight.' },
+    {
+      title: '1. Time Anxiety',
+      body: 'Long layovers lack recreation, with crowded and noisy terminals. Travelers want a quick city tour but hesitate due to unfamiliar routes, language barriers, and fear of missing their flight.',
+      solution: 'Solution: Standardized 4/8/12h city routes with dedicated guides, all-inclusive pricing, requiring no planning by the traveler.',
+    },
+    {
+      title: '2. Baggage Anxiety',
+      body: 'Claiming and re-checking heavy baggage is tedious. Dragging carry-on bags around cities exhausts energy, severely dampening the desire to explore or shop.',
+      solution: 'Solution: One-click baggage custody at transit counters with real-time RFID tracking, delivering bags directly to lounges or hotels.',
+    },
+    {
+      title: '3. Decision Anxiety',
+      body: 'With limited time, travelers struggle to match budgets, preferences, and departure times, leading to high selection costs and severe indecision.',
+      solution: 'Solution: AI Concierge chatbot syncs flight time, baggage status, and preferences, recommending tailored lounge, shopping, or city tour plans.',
+    },
+    {
+      title: '4. Missed Anxiety',
+      body: 'Delays from traffic, scheduling issues, or guide mishaps carry heavy consequences borne solely by travelers, which is the main barrier to leaving the airport.',
+      solution: 'Solution: Real-time flight tracking, strict return-buffer management, and missed-flight insurance covering rapid verification and instant compensation.',
+    },
   ],
   solutionTitle: 'Product Solution: One AI Entry, Three Layers of Fulfillment',
   solutionSubline: 'AI saves users from learning menus, and state machines prevent unverified operational promises. While judges see stunning chat cards, the business sells controlled airport service orchestration.',
@@ -274,153 +307,151 @@ export default function PitchPage() {
         </div>
       </section>
 
-      {/* Target Painpoints Section */}
-      <section id="problem" className="py-16 px-6 max-w-7xl mx-auto w-full text-slate-950">
-        <h2 className="text-2xl md:text-3xl font-extrabold text-slate-900 text-center mb-2">
-          中转旅客的“四大核心焦虑”与我们的一站式对策
-        </h2>
-        <p className="text-slate-500 text-center text-sm mb-12">
-          针对 6-48 小时过境停留，重构中转全链路体验
-        </p>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {/* Card 1 */}
-          <div className="bg-white rounded-2xl p-6 border border-slate-200/85 shadow-sm flex flex-col">
-            <div className="w-12 h-12 rounded-xl bg-orange-100 flex items-center justify-center text-orange-600 mb-5">
-              <Clock3 size={24} />
-            </div>
-            <h3 className="font-bold text-lg text-slate-900 mb-2">1. 时间焦虑</h3>
-            <p className="text-xs text-slate-500 mb-4 leading-relaxed flex-1">
-              漫长中转等候期无休闲消遣，候机大厅拥挤嘈杂；旅客有意出境短途游览，却因陌生路线、语言不通、担心错过航班等多重顾虑不敢离港。
-            </p>
-            <div className="bg-slate-50 px-4 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-700 font-semibold mt-auto">
-              🎯 <strong>对策</strong>：标准化推出 4/8/12 小时分时段专属城市路线，全程专人向导、一价全包，旅客无需自行做行程攻略。
-            </div>
-          </div>
-
-          {/* Card 2 */}
-          <div className="bg-white rounded-2xl p-6 border border-slate-200/85 shadow-sm flex flex-col">
-            <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600 mb-5">
-              <Luggage size={24} />
-            </div>
-            <h3 className="font-bold text-lg text-slate-900 mb-2">2. 随身行李焦虑</h3>
-            <p className="text-xs text-slate-500 mb-4 leading-relaxed flex-1">
-              中转需反复提取、二次托运大件行李流程繁琐；随身拖拽登机箱游览耗损体力，大幅降低旅客外出游玩、线下消费意愿。
-            </p>
-            <div className="bg-slate-50 px-4 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-700 font-semibold mt-auto">
-              🎯 <strong>对策</strong>：中转柜台一键行李全托管，依托 RFID 物联网实时定位追踪；实现人包分离，行李直达贵宾厅或中转酒店，AI 智能弹窗实时推送行李动态提醒。
-            </div>
-          </div>
-
-          {/* Card 3 */}
-          <div className="bg-white rounded-2xl p-6 border border-slate-200/85 shadow-sm flex flex-col">
-            <div className="w-12 h-12 rounded-xl bg-violet-100 flex items-center justify-center text-violet-600 mb-5">
-              <Compass size={24} />
-            </div>
-            <h3 className="font-bold text-lg text-slate-900 mb-2">3. 决策焦虑</h3>
-            <p className="text-xs text-slate-500 mb-4 leading-relaxed flex-1">
-              停留时长有限，旅客难以快速匹配贴合自身预算、喜好、剩余登机时间的出行方案，选择成本高、纠结内耗严重。
-            </p>
-            <div className="bg-slate-50 px-4 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-700 font-semibold mt-auto">
-              🎯 <strong>对策</strong>：专属 AI 礼遇智能对话机器人，一键同步航班剩余时长、行李状态、出行偏好；自动分层推荐轻量化 / 深度游玩、休息休憩、免税购物三类方案，实时调整行程，一站式敲定全部中转安排，消除选择内耗。
-            </div>
-          </div>
-
-          {/* Card 4 */}
-          <div className="bg-white rounded-2xl p-6 border border-slate-200/85 shadow-sm flex flex-col">
-            <div className="w-12 h-12 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-600 mb-5">
-              <ShieldCheck size={24} />
-            </div>
-            <h3 className="font-bold text-lg text-slate-900 mb-2">4. 误机安全焦虑</h3>
-            <p className="text-xs text-slate-500 mb-4 leading-relaxed flex-1">
-              外出游览遭遇路面拥堵、行程延误、向导衔接失误等突发状况，一旦误机损失全由旅客自行承担，是旅客不敢出境中转游览的核心顾虑。
-            </p>
-            <div className="bg-slate-50 px-4 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-700 font-semibold mt-auto">
-              🎯 <strong>对策</strong>：系统实时前置抓取航班动态，行程全程预留弹性缓冲时长，专人全程把控返程节点；配套专属中转误机保障险，若因我方服务问题造成误机，支持极速核验、即时理赔，彻底打消航班延误后顾之忧。
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Package comparison */}
-      <section className="py-16 px-6 bg-white border-y border-slate-200/50 text-slate-950">
-        <div className="max-w-6xl mx-auto w-full">
+      {/* Target Painpoints, Packages, and Airports Sections with high-contrast light background */}
+      <div className="bg-white text-slate-950 w-full border-t border-slate-100">
+        
+        {/* Target Painpoints Section */}
+        <section id="problem" className="py-16 px-6 max-w-7xl mx-auto w-full text-slate-950">
           <h2 className="text-2xl md:text-3xl font-extrabold text-slate-900 text-center mb-2">
-            灵活定义 3 档核心中转套餐
+            {language === 'zh-CN' 
+              ? '中转旅客的“四大核心焦虑”与我们的一站式对策' 
+              : 'Transit Travelers’ "Four Core Anxieties" and Our One-Stop Solutions'}
           </h2>
           <p className="text-slate-500 text-center text-sm mb-12">
-            根据停留时长智能推荐，匹配高净值探索、带娃出游、纯能补给多重诉求
+            {language === 'zh-CN' 
+              ? '针对 6-48 小时过境停留，重构中转全链路体验' 
+              : 'Reconstructing the entire transit journey for 6-48h layovers'}
           </p>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {packages.map((pkg) => (
-              <div 
-                key={pkg.sku}
-                className="border border-slate-200/80 rounded-2xl p-6 hover:shadow-lg transition-all duration-300 flex flex-col bg-white"
-              >
-                <span className="text-xs bg-slate-100 text-slate-500 px-3 py-1 rounded-full font-semibold self-start mb-4">
-                  中转 {pkg.recommendedLayover.minHours}–{pkg.recommendedLayover.maxHours}h 推荐
-                </span>
-                <h3 className="font-bold text-xl text-slate-900 mb-1">{pkg.name}</h3>
-                <p className="text-xs text-slate-500 mb-4 leading-relaxed">{pkg.tagline}</p>
-                <div className="flex items-baseline gap-1 mb-6">
-                  <span className="text-3xl font-black text-blue-600">¥{pkg.price}</span>
-                  <span className="text-xs text-slate-400">/ 起</span>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {copy.painPoints.map((item, index) => {
+              const Icon = [Clock3, Luggage, Compass, ShieldCheck][index];
+              const colors = [
+                { bg: 'bg-orange-100 text-orange-600', icon: 'text-orange-600' },
+                { bg: 'bg-blue-100 text-blue-600', icon: 'text-blue-600' },
+                { bg: 'bg-violet-100 text-violet-600', icon: 'text-violet-600' },
+                { bg: 'bg-emerald-100 text-emerald-600', icon: 'text-emerald-600' },
+              ][index];
+              return (
+                <div key={item.title} className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm flex flex-col hover:shadow-md transition-shadow">
+                  <div className={`w-12 h-12 rounded-xl ${colors.bg} flex items-center justify-center mb-5 shrink-0`}>
+                    <Icon size={24} />
+                  </div>
+                  <h3 className="font-bold text-lg text-slate-900 mb-2">{item.title}</h3>
+                  <p className="text-xs text-slate-500 mb-4 leading-relaxed flex-1 font-medium">
+                    {item.body}
+                  </p>
+                  <div className="bg-slate-50 px-4 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-700 font-semibold mt-auto">
+                    🎯 {item.solution}
+                  </div>
                 </div>
-                <div className="h-[1px] bg-slate-100 mb-6" />
-                <ul className="space-y-3 mb-8 flex-1 text-xs text-slate-600">
-                  {pkg.includes.map((inc, i) => (
-                    <li key={i} className="flex items-start gap-2">
-                      <span className="text-blue-600 font-bold">✓</span>
-                      <span>{inc}</span>
-                    </li>
-                  ))}
-                </ul>
-                <Link 
-                  href="/search"
-                  className="w-full py-3 bg-slate-100 hover:bg-blue-600 hover:text-white text-slate-700 font-semibold rounded-xl text-center text-xs transition-all duration-200"
-                >
-                  去定制选择
-                </Link>
-              </div>
-            ))}
+              );
+            })}
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Flagship Hub Airports */}
-      <section className="py-16 px-6 max-w-6xl mx-auto w-full text-slate-950">
-        <h2 className="text-2xl md:text-3xl font-extrabold text-slate-900 text-center mb-2">
-          率先接入 4 大标志性国际中转枢纽
-        </h2>
-        <p className="text-slate-500 text-center text-sm mb-12">
-          精选枢纽进行灰度 PoC 试点，打通当地优质运营商
-        </p>
+        {/* Package comparison */}
+        <section className="py-16 px-6 border-t border-slate-100 text-slate-950">
+          <div className="max-w-6xl mx-auto w-full">
+            <h2 className="text-2xl md:text-3xl font-extrabold text-slate-900 text-center mb-2">
+              {language === 'zh-CN' ? '灵活定义 3 档核心中转套餐' : 'Flexibly Define 3 Layover Packages'}
+            </h2>
+            <p className="text-slate-500 text-center text-sm mb-12">
+              {language === 'zh-CN' 
+                ? '根据停留时长智能推荐，匹配高净值探索、带娃出游、纯能补给多重诉求' 
+                : 'Smart recommendations by layover hours, matching diverse travel and rest needs'}
+            </p>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-          {airports.map((airport) => (
-            <div 
-              key={airport.code}
-              className="group bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden hover:translate-y-[-4px] transition-all duration-300"
-            >
-              <div 
-                className="h-32 bg-cover bg-center group-hover:scale-105 transition-transform duration-500" 
-                style={{ backgroundImage: `url(${airport.image})` }}
-              />
-              <div className="p-4 bg-white">
-                <span className="text-xs bg-blue-50 text-blue-600 px-2 py-0.5 rounded font-bold">
-                  {airport.code}
-                </span>
-                <h4 className="font-bold text-sm text-slate-900 mt-2">{airport.nameZh}</h4>
-                <p className="text-[11px] text-slate-400 mt-1">{airport.city}</p>
-                <span className="text-[10px] text-slate-500 bg-slate-100 px-2 py-1 rounded-full inline-block mt-3 border border-slate-200">
-                  {airport.visaFree ? '免签/可落地签' : '需办理电子签'}
-                </span>
-              </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {packages.map((pkg) => {
+                const localPkg = localizePackage(pkg, language);
+                return (
+                  <div 
+                    key={pkg.sku}
+                    className="border border-slate-200/80 rounded-2xl p-6 hover:shadow-lg transition-all duration-300 flex flex-col bg-white"
+                  >
+                    <span className="text-xs bg-slate-100 text-slate-500 px-3 py-1 rounded-full font-semibold self-start mb-4">
+                      {language === 'zh-CN' 
+                        ? `中转 ${pkg.recommendedLayover.minHours}–${pkg.recommendedLayover.maxHours}h 推荐`
+                        : `Transit ${pkg.recommendedLayover.minHours}–${pkg.recommendedLayover.maxHours}h Choice`}
+                    </span>
+                    <h3 className="font-bold text-xl text-slate-900 mb-1">{localPkg.name}</h3>
+                    <p className="text-xs text-slate-500 mb-4 leading-relaxed font-medium">{localPkg.tagline}</p>
+                    <div className="flex items-baseline gap-1 mb-6">
+                      <span className="text-3xl font-black text-blue-600">¥{pkg.price}</span>
+                      <span className="text-xs text-slate-400">/ {language === 'zh-CN' ? '起' : 'starting'}</span>
+                    </div>
+                    <div className="h-[1px] bg-slate-100 mb-6" />
+                    <ul className="space-y-3 mb-8 flex-1 text-xs text-slate-600 font-medium">
+                      {localPkg.includes.map((inc, i) => (
+                        <li key={i} className="flex items-start gap-2">
+                          <span className="text-blue-600 font-bold">✓</span>
+                          <span>{inc}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    <Link 
+                      href="/search"
+                      className="w-full py-3 bg-slate-100 hover:bg-blue-600 hover:text-white text-slate-700 font-bold rounded-xl text-center text-xs transition-all duration-200"
+                    >
+                      {language === 'zh-CN' ? '去定制选择' : 'Customize & Book'}
+                    </Link>
+                  </div>
+                );
+              })}
             </div>
-          ))}
-        </div>
-      </section>
+          </div>
+        </section>
+
+        {/* Flagship Hub Airports */}
+        <section className="py-16 px-6 border-t border-slate-100 text-slate-950">
+          <div className="max-w-6xl mx-auto w-full">
+            <h2 className="text-2xl md:text-3xl font-extrabold text-slate-900 text-center mb-2">
+              {language === 'zh-CN' ? '率先接入 4 大标志性国际中转枢纽' : 'First to Access 4 Flagship Transit Hubs'}
+            </h2>
+            <p className="text-slate-500 text-center text-sm mb-12">
+              {language === 'zh-CN' 
+                ? '精选枢纽进行灰度 PoC 试点，打通当地优质运营商' 
+                : 'PoC pilots selected to connect with top local transit operators'}
+            </p>
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              {airports.map((airport) => {
+                const localAirport = localizeAirport(airport, language);
+                return (
+                  <div 
+                    key={airport.code}
+                    className="group bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden hover:translate-y-[-4px] transition-all duration-300"
+                  >
+                    <div 
+                      className="h-32 bg-cover bg-center group-hover:scale-105 transition-transform duration-500" 
+                      style={{ backgroundImage: `url(${airport.image})` }}
+                    />
+                    <div className="p-4 bg-white">
+                      <span className="text-xs bg-blue-50 text-blue-600 px-2 py-0.5 rounded font-bold">
+                        {airport.code}
+                      </span>
+                      <h4 className="font-bold text-sm text-slate-900 mt-2">
+                        {localAirport.nameZh}
+                      </h4>
+                      <p className="text-[11px] text-slate-400 mt-1 font-medium">
+                        {language === 'zh-CN' 
+                          ? (airport.code === 'SIN' ? '新加坡' : airport.code === 'DOH' ? '多哈' : airport.code === 'IST' ? '伊斯坦布尔' : '迪拜') 
+                          : airport.city}
+                      </p>
+                      <span className="text-[10px] text-slate-500 bg-slate-50 px-2 py-1 rounded-full inline-block mt-3 border border-slate-200 font-bold">
+                        {airport.visaFree 
+                          ? (language === 'zh-CN' ? '免签/可落地签' : 'Visa-Free / VOA') 
+                          : (language === 'zh-CN' ? '需办理电子签' : 'e-Visa Required')}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      </div>
 
       {/* Dynamic Scenarios Visual section */}
       <section className="py-16 px-6 bg-slate-900 text-white">
@@ -428,25 +459,41 @@ export default function PitchPage() {
           <div className="flex-1">
             <div className="inline-flex items-center gap-2 bg-white/10 text-white px-3 py-1 rounded-full text-xs font-semibold mb-4">
               <Compass size={12} className="animate-spin text-blue-200" />
-              <span>流程控制与演示模拟</span>
+              <span>{language === 'zh-CN' ? '流程控制与演示模拟' : 'Flow Control & Simulation'}</span>
             </div>
-            <h2 className="text-3xl font-bold mb-4">极速演示模式 (Fast-Forward)</h2>
-            <p className="text-slate-400 text-xs leading-relaxed mb-6">
-              在实际中，行李在贵宾室寄存、城市游等要耗费 6-24 小时。为方便评审与验证，我们在订单管理和跟踪页嵌入了 **快速演示控制台**。
+            <h2 className="text-3xl font-bold mb-4">
+              {language === 'zh-CN' ? '极速演示模式 (Fast-Forward)' : 'Fast-Forward Demo Mode'}
+            </h2>
+            <p className="text-slate-400 text-xs leading-relaxed mb-6 font-medium">
+              {language === 'zh-CN' 
+                ? '在实际中，行李在贵宾室寄存、城市游等要耗费 6-24 小时。为方便评审与验证，我们在订单管理和跟踪页嵌入了 **快速演示控制台**。' 
+                : 'In reality, lounge custody and city tours take 6–24 hours. For easy review and verification, we embedded a Fast-Forward Control Panel in the tracking page.'}
             </p>
             <div className="space-y-4 text-left">
               <div className="flex items-start gap-3">
                 <div className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center text-xs font-bold text-white mt-1 shrink-0">1</div>
                 <div>
-                  <h4 className="text-xs font-bold">模拟提交航班与套餐：</h4>
-                  <p className="text-[11px] text-slate-400 mt-0.5">自定中转小时数（如 12 小时），系统将生成对应的 RFID 行李电子标签和旅游行程表。</p>
+                  <h4 className="text-xs font-bold">
+                    {language === 'zh-CN' ? '模拟提交航班与套餐：' : 'Submit Flight & Package:'}
+                  </h4>
+                  <p className="text-[11px] text-slate-400 mt-0.5 font-medium">
+                    {language === 'zh-CN' 
+                      ? '自定中转小时数（如 12 小时），系统将生成对应的 RFID 行李电子标签和旅游行程表。' 
+                      : 'Set custom layover hours to generate RFID tags and stopover itineraries.'}
+                  </p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
                 <div className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center text-xs font-bold text-white mt-1 shrink-0">2</div>
                 <div>
-                  <h4 className="text-xs font-bold">物理操作一键驱动：</h4>
-                  <p className="text-[11px] text-slate-400 mt-0.5">控制台中可一键完成“交付行李”、“行李到达贵宾厅”。无需漫长等待即可流转状态。</p>
+                  <h4 className="text-xs font-bold">
+                    {language === 'zh-CN' ? '物理操作一键驱动：' : 'One-Click Verification:'}
+                  </h4>
+                  <p className="text-[11px] text-slate-400 mt-0.5 font-medium">
+                    {language === 'zh-CN' 
+                      ? '控制台中可一键完成“交付行李”、“行李到达贵宾厅”。无需漫长等待即可流转状态。' 
+                      : 'Use the console to instantly trigger actions like bag drop-off or lounge delivery.'}
+                  </p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
@@ -504,21 +551,7 @@ export default function PitchPage() {
         </div>
       </section>
 
-      <section className="bg-[linear-gradient(135deg,#0b5fff,#0f172a)] px-5 py-16 text-white sm:px-8 lg:px-12">
-        <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-8 lg:flex-row lg:items-center">
-          <div>
-            <div className="text-sm font-black uppercase tracking-[0.18em] text-blue-100">{copy.closingLabel}</div>
-            <h2 className="mt-4 max-w-4xl text-4xl font-black leading-tight tracking-normal sm:text-6xl">
-              {copy.closingHeadline}
-            </h2>
-          </div>
-          <OpenConciergeButton
-            className="inline-flex shrink-0 items-center justify-center gap-2 rounded-2xl bg-white px-6 py-4 text-sm font-black text-slate-950 shadow-xl transition hover:-translate-y-0.5 cursor-pointer"
-          >
-            {copy.enterLiveDemo}
-          </OpenConciergeButton>
-        </div>
-      </section>
+
     </div>
   );
 }
