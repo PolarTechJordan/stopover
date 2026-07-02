@@ -443,9 +443,10 @@ function Sidebar({ copy }: { copy: DashboardCopy }) {
             })}
           </div>
         </div>
-        <Link
-          href="/"
-          className="flex items-center justify-between rounded-lg border border-white/12 bg-[#071b38] px-4 py-3 text-white transition hover:bg-white/8"
+        <button
+          type="button"
+          onClick={() => window.dispatchEvent(new CustomEvent('stopover:open-concierge'))}
+          className="flex w-full items-center justify-between rounded-lg border border-white/12 bg-[#071b38] px-4 py-3 text-left text-white transition hover:bg-white/8"
         >
           <div className="flex items-center gap-3">
             <Headphones className="text-[#ff7a00]" size={24} />
@@ -455,7 +456,7 @@ function Sidebar({ copy }: { copy: DashboardCopy }) {
             </div>
           </div>
           <ChevronRight size={18} />
-        </Link>
+        </button>
       </div>
     </aside>
   );
